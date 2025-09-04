@@ -1,0 +1,183 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2 class="mb-4">Solicitar Cita</h2>
+
+<!-- FILTRO DE ASIGNATURA -->
+<div class="mb-3">
+    <label for="asignatura" class="form-label">Selecciona una Asignatura</label>
+    <select id="asignatura" class="form-select">
+        <option value="">-- Selecciona --</option>
+        {% for asignatura in asignaturas %}
+            <option value="{{ asignatura.id }}">{{ asignatura.nombre }}</option>
+        {% endfor %}
+    </select>
+</div>
+
+<!-- FILTRO DE DOCENTE -->
+<div class="mb-3">
+    <label for="docente" class="form-label">Selecciona un Docente</label>
+    <select id="docente" class="form-select" disabled>
+        <option value="">-- Selecciona --</option>
+    </select>
+</div>
+
+<!-- CALENDARIO DE DISPONIBILIDAD -->
+<div id="calendar" class="shadow rounded p-3 bg-white mt-4" style="max-width: 1200px; margin: auto; display: none;"></div>
+
+<!-- MODAL DE CONFIRMACIÓN -->
+<div class="modal fade" id="confirmModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Confirmar Cita</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <p><strong>Docente:</strong> <span id="modal-docente"></span></p>
+        <p><strong>Día:</strong> <span id="modal-dia"></span></p>
+        <p><strong>Hora:</strong> <span id="modal-hora"></span></p>
+        <input type="hidden" id="slot_id">
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+        <button type="button" class="btn btn-primary" id="confirmarCitaBtn">Confirmar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FullCalendar CSS y JS -->
+<link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+// Referencia al calendario y docente seleccionado
+let calendar; 
+let selectedDocente = "";
+
+// Cambio de asignatura -> cargar docentes
+document.getElementById("asignatura").addEventListener("change", async function() {
+    let asignaturaId = this.value;
+    let docenteSelect = document.getElementById("docente");
+    docenteSelect.innerHTML = "<option value=''>-- Selecciona --</option>";
+
+    if(asignaturaId) {
+        let res = await fetch(`/solicitar/docentes/${asignaturaId}`);
+        let data = await res.json();
+        data.forEach(doc => {
+            let option = document.createElement("option");
+            option.value = doc.id;
+            option.textContent = doc.nombre;
+            docenteSelect.appendChild(option);
+        });
+        docenteSelect.disabled = false;
+    } else {
+        docenteSelect.disabled = true;
+    }
+});
+
+// Cambio de docente -> cargar calendario
+document.getElementById("docente").addEventListener("change", async function() {
+    let docenteId = this.value;
+    selectedDocente = this.options[this.selectedIndex].text;
+    let calendarEl = document.getElementById("calendar");
+
+    if (!docenteId) {
+        calendarEl.style.display = "none";
+        if(calendar) calendar.destroy();
+        return;
+    }
+
+    calendarEl.style.display = "block";
+    if(calendar) calendar.destroy();
+
+    let today = new Date();
+    let fecha = today.toISOString().split("T")[0];
+
+    let res = await fetch(`/solicitar/disponibilidad/${docenteId}`);
+    let data = await res.json();
+
+    calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: "timeGridWeek",
+        initialDate: fecha,
+        allDaySlot: false,
+        slotMinTime: "05:00:00",
+        slotMaxTime: "20:00:00",
+        hiddenDays: [0, 6],
+        locale: "es",
+        expandRows: true,
+        height: "auto",
+        aspectRatio: 1.8,
+        headerToolbar: {
+            left: "",
+            center: "title",   // aquí aparece el rango de fechas
+            right: ""
+        },
+
+        events: data,
+
+        eventClick: function(info) {
+            if(info.event.extendedProps.estado === "ocupado") {
+                alert("⚠️ Este horario ya está ocupado");
+                return;
+            }
+
+            let fechaSlot = info.event.start.toISOString().split("T")[0];
+            let horaInicio = info.event.start.toTimeString().split(" ")[0];
+            let horaFin = info.event.end.toTimeString().split(" ")[0];
+
+            document.getElementById("modal-docente").textContent = selectedDocente;
+            document.getElementById("modal-dia").textContent = fechaSlot;
+            document.getElementById("modal-hora").textContent = horaInicio + " - " + horaFin;
+            document.getElementById("slot_id").value = info.event.id;
+
+            let slotInput = document.getElementById("slot_id");
+            slotInput.dataset.fecha = fechaSlot;
+            slotInput.dataset.hora_inicio = horaInicio;
+            slotInput.dataset.hora_fin = horaFin;
+
+            let modal = new bootstrap.Modal(document.getElementById("confirmModal"));
+            modal.show();
+        }
+    });
+
+    calendar.render();
+});
+
+// Confirmar cita -> actualizar slot al instante
+document.getElementById("confirmarCitaBtn").addEventListener("click", async function() {
+    let slotId = document.getElementById("slot_id").value;
+    let fecha = document.getElementById("slot_id").dataset.fecha;
+    let horaInicio = document.getElementById("slot_id").dataset.hora_inicio;
+    let horaFin = document.getElementById("slot_id").dataset.hora_fin;
+    let docenteId = document.getElementById("docente").value;
+
+    let res = await fetch("/solicitar/confirmar", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ slot_id: slotId, docente_id: docenteId, fecha, hora_inicio: horaInicio, hora_fin: horaFin })
+    });
+
+    let data = await res.json();
+    if (data.success) {
+        alert("✅ Cita agendada con éxito");
+
+        // Cambiar color del slot a azul sin recargar
+        let evento = calendar.getEventById(slotId);
+        if(evento){
+            evento.setProp("color", "#007bff"); // azul
+            evento.setExtendedProp("estado", "ocupado");
+        }
+
+        // Cerrar modal
+        let modalEl = document.getElementById("confirmModal");
+        let modal = bootstrap.Modal.getInstance(modalEl);
+        modal.hide();
+    } else {
+        alert("⚠️ " + data.message);
+    }
+});
+</script>
+{% endblock %}

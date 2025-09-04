@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mt-4">
+        <h2>📜 Historial de Mis Citas</h2>
+        <form method="get" class="d-flex align-items-center">
+            <label for="estado" class="me-2">Filtrar por estado:</label>
+            <select name="estado" id="estado" class="form-select me-2" onchange="this.form.submit()">
+                <option value="">Todos</option>
+                <option value="cancelada" {% if estado_filtro == 'cancelada' %}selected{% endif %}>Canceladas</option>
+                <option value="finalizada" {% if estado_filtro == 'finalizada' %}selected{% endif %}>Finalizadas</option>
+                <option value="rechazada" {% if estado_filtro == 'rechazada' %}selected{% endif %}>Rechazadas</option>
+            </select>
+        </form>
+    </div>
+
+    {% if registros %}
+    <table class="table table-bordered mt-3">
+        <thead class="table-dark">
+            <tr>
+                <th>Fecha de la cita</th>
+                <th>Hora</th>
+                <th>Docente</th>
+                <th>Motivo</th>
+                <th>Estado</th>
+                <th>Fecha de registro</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for reg in registros %}
+            <tr>
+                <td>{{ reg.fecha }}</td>
+                <td>{{ reg.hora_inicio }} - {{ reg.hora_fin }}</td>
+                <td>{{ reg.docente_nombre }} {{ reg.docente_apellido }}</td>
+                <td>{{ reg.motivo }}</td>
+                <td>
+                    {% if reg.estado == 'cancelada' %}
+                        <span class="badge bg-danger">Cancelada</span>
+                    {% elif reg.estado == 'finalizada' %}
+                        <span class="badge bg-success">Finalizada</span>
+                    {% elif reg.estado == 'rechazada' %}
+                        <span class="badge bg-secondary">Rechazada</span>
+                    {% endif %}
+                </td>
+                <td>{{ reg.fecha_registro }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="alert alert-info mt-3">No tienes registros de citas.</div>
+    {% endif %}
+
+    <a href="{{ url_for('citas.mis_citas') }}" class="btn btn-secondary mt-3">⬅️ Volver a Mis Citas</a>
+</div>
+{% endblock %}

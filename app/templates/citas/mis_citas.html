@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mt-4">
+        <h2>📅 Mis Citas</h2>
+        <div class="d-flex align-items-center">
+            <form method="get" class="d-flex align-items-center me-2">
+                <label for="estado" class="me-2">Filtrar por estado:</label>
+                <select name="estado" id="estado" class="form-select" onchange="this.form.submit()">
+                    <option value="">Todos</option>
+                    <option value="pendiente" {% if estado_filtro == 'pendiente' %}selected{% endif %}>Pendientes</option>
+                    <option value="aprobada" {% if estado_filtro == 'aprobada' %}selected{% endif %}>Aprobadas</option>
+                    <option value="cancelada" {% if estado_filtro == 'cancelada' %}selected{% endif %}>Canceladas</option>
+                    <option value="rechazada" {% if estado_filtro == 'rechazada' %}selected{% endif %}>Rechazadas</option>
+                    <option value="finalizada" {% if estado_filtro == 'finalizada' %}selected{% endif %}>Finalizadas</option>
+                </select>
+            </form>
+
+            <a href="{{ url_for('citas.registros_citas') }}" class="btn btn-outline-primary">📖 Ver Historial</a>
+        </div>
+    </div>
+
+    {% if citas %}
+    <table class="table table-striped mt-3">
+        <thead>
+            <tr>
+                <th>Fecha</th>
+                <th>Hora</th>
+                <th>Docente</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for cita in citas %}
+            <tr>
+                <td>{{ cita.fecha }}</td>
+                <td>{{ cita.hora_inicio }} - {{ cita.hora_fin }}</td>
+                <td>{{ cita.docente_nombre }} {{ cita.docente_apellido }}</td>
+                <td>
+                    {% if cita.estado == 'pendiente' %}
+                        <span class="badge bg-warning text-dark">Pendiente</span>
+                    {% elif cita.estado == 'aprobada' %}
+                        <span class="badge bg-success">Aprobada</span>
+                    {% elif cita.estado == 'cancelada' %}
+                        <span class="badge bg-danger">Cancelada</span>
+                    {% elif cita.estado == 'rechazada' %}
+                        <span class="badge bg-secondary">Rechazada</span>
+                    {% elif cita.estado == 'finalizada' %}
+                        <span class="badge bg-primary">Finalizada</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if cita.estado == 'pendiente' %}
+                    <button class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#cancelModal"
+                            data-cita-id="{{ cita.id }}">
+                        Cancelar
+                    </button>
+                    {% else %}
+                        -
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="alert alert-info mt-3">No tienes citas registradas.</div>
+    {% endif %}
+</div>
+
+<!-- Modal para cancelar cita -->
+<div class="modal fade" id="cancelModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <form method="post" id="cancelForm">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Cancelar Cita</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+          </div>
+          <div class="modal-body">
+            <div class="mb-3">
+              <label for="motivo" class="form-label">Motivo de cancelación</label>
+              <textarea class="form-control" id="motivo" name="motivo" required></textarea>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <a href="{{ url_for('citas.registros_citas') }}" class="btn btn-secondary">📖 Ir a Historial</a>
+            <button type="submit" class="btn btn-danger">Cancelar Cita</button>
+          </div>
+        </div>
+    </form>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var cancelModal = document.getElementById('cancelModal')
+    cancelModal.addEventListener('show.bs.modal', function (event) {
+        var button = event.relatedTarget
+        var citaId = button.getAttribute('data-cita-id')
+        var form = document.getElementById('cancelForm')
+        form.action = '/citas/cancelar/' + citaId
+    })
+})
+</script>
+{% endblock %}

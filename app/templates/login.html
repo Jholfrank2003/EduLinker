@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Login - EduLinker</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        body {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: url("{{ url_for('static', filename='img/fondo_login.jpg') }}") no-repeat center center fixed;
+            background-size: cover;
+            position: relative;
+        }
+
+        body::before {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.6); /* overlay oscuro */
+        }
+
+        .login-card {
+            position: relative;
+            z-index: 1;
+            background: rgba(15, 25, 35, 0.85); /* azul oscuro translúcido */
+            border-radius: 15px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.5);
+            padding: 2rem;
+            color: #e0e6ed;
+        }
+
+        .login-card h4 {
+            color: #4da6ff;
+            font-weight: bold;
+        }
+
+        .form-label {
+            color: #cfd8dc;
+        }
+
+        .form-control {
+            background: rgba(255,255,255,0.1);
+            border: 1px solid #4da6ff;
+            color: #fff;
+        }
+
+        .form-control::placeholder {
+            color: #b0bec5;
+        }
+
+        .form-control:focus {
+            background: rgba(255,255,255,0.15);
+            border-color: #66b3ff;
+            box-shadow: 0 0 8px #4da6ff;
+            color: #fff;
+        }
+
+        .btn-primary {
+            background: #4da6ff;
+            border: none;
+            font-weight: bold;
+        }
+
+        .btn-primary:hover {
+            background: #66b3ff;
+        }
+
+        .form-check-label {
+            color: #cfd8dc;
+        }
+
+        .password-wrapper {
+            position: relative;
+        }
+
+        .toggle-password {
+            position: absolute;
+            top: 75%;
+            right: 35px;
+            transform: translateY(-50%);
+            cursor: pointer;
+            font-size: 1.2rem; /* más grande */
+            color: #4da6ff;    /* mismo azul que tu tema */
+        }
+
+        .toggle-password:hover {
+            color: #66b3ff;
+        }
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-4">
+                <div class="login-card">
+                    <div class="text-center mb-3">
+                        <i class="bi bi-person-circle" style="font-size: 3rem; color:#4da6ff;"></i>
+                        <h4 class="mt-2">Iniciar Sesión</h4>
+                    </div>
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                        {% if messages %}
+                            {% for category, message in messages %}
+                                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                                    {{ message }}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                    {% endwith %}
+
+                    <form method="POST" action="{{ url_for('auth.login') }}">
+                        <div class="mb-3">
+                            <label for="correo" class="form-label">Correo</label>
+                            <input type="email" class="form-control" id="correo" name="correo" placeholder="ejemplo@correo.com" required>
+                        </div>
+                        <div class="mb-3 password-wrapper">
+                            <label for="contrasena" class="form-label">Contraseña</label>
+                            <input type="password" class="form-control" id="contrasena" name="contrasena" placeholder="********" required>
+                            <i class="bi bi-eye toggle-password" id="togglePassword"></i>
+                        </div>
+                        <div class="mb-3 form-check">
+                            <input type="checkbox" class="form-check-input" id="remember" name="remember">
+                            <label class="form-check-label" for="remember">Recuérdame</label>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">Ingresar</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+    // Mostrar/ocultar contraseña
+    const togglePassword = document.getElementById("togglePassword");
+    const passwordInput = document.getElementById("contrasena");
+
+    togglePassword.addEventListener("click", () => {
+        const type = passwordInput.getAttribute("type") === "password" ? "text" : "password";
+        passwordInput.setAttribute("type", type);
+
+        // Cambiar icono
+        togglePassword.classList.toggle("bi-eye");
+        togglePassword.classList.toggle("bi-eye-slash");
+    });
+
+    // Validación instantánea
+    const inputs = document.querySelectorAll("input");
+    inputs.forEach(input => {
+        input.addEventListener("input", function () {
+            if (this.checkValidity()) {
+                this.classList.remove("is-invalid");
+                this.classList.add("is-valid");
+            } else {
+                this.classList.remove("is-valid");
+                this.classList.add("is-invalid");
+            }
+        });
+    });
+
+    const rememberCheckbox = document.getElementById("remember");
+    const correoInput = document.getElementById("correo");
+
+    // Cargar correo guardado
+    if (localStorage.getItem("correo")) {
+        correoInput.value = localStorage.getItem("correo");
+        rememberCheckbox.checked = true;
+    }
+
+    // Guardar/quitar correo al enviar el formulario
+    document.querySelector("form").addEventListener("submit", () => {
+        if (rememberCheckbox.checked) {
+            localStorage.setItem("correo", correoInput.value);
+        } else {
+            localStorage.removeItem("correo");
+        }
+    });
+    </script>
+</body>
+</html>

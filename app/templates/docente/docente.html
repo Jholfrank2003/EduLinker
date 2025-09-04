@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <h2 class="mb-4">Lista de Docentes Activos</h2>
+    <a href="{{ url_for('docente.lista_docentes_inactivos') }}" class="btn btn-secondary mb-3">Ver Docentes Inactivos</a>
+    <table class="table table-striped table-bordered">
+        <thead class="table-dark">
+            <tr>
+                <th>ID</th>
+                <th>Nombre</th>
+                <th>Apellido</th>
+                <th>Correo</th>
+                <th>Teléfono</th>
+                <th>Rol</th>
+                <th>Estado</th>
+                <th>Profesión</th>
+                <th>Asignaturas</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for docente in docentes %}
+                <tr>
+                    <td>{{ docente.id }}</td>
+                    <td>{{ docente.nombre }}</td>
+                    <td>{{ docente.apellido }}</td>
+                    <td>{{ docente.correo }}</td>
+                    <td>{{ docente.telefono }}</td>
+                    <td>{{ docente.rol }}</td>
+                    <td>{{ docente.estado }}</td>
+                    <td>{{ docente.profesion }}</td>
+                    <td>{{ docente.asignaturas or 'Ninguna' }}</td>
+                    <td>
+                        <a href="{{ url_for('docente.editar_docente', docente_id=docente.id) }}" class="btn btn-warning btn-sm">Editar</a>
+                        <form action="{{ url_for('docente.eliminar_docente_route', docente_id=docente.id) }}" method="POST" style="display:inline;">
+                            <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('¿Seguro que deseas desactivar este docente?')">Eliminar</button>
+                        </form>
+                    </td>
+                </tr>
+            {% else %}
+                <tr>
+                    <td colspan="10" class="text-center">No hay docentes registrados.</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

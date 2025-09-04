@@ -1,0 +1,24 @@
+# Entorno virtual
+venv/
+.env
+*.env
+
+# Archivos Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Archivos DB
+*.db
+*.sqlite3
+
+# Config
+instance/
+config.pyc
+
+# IDE y SO
+.vscode/
+.idea/
+*.code-workspace
+.DS_Store

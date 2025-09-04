@@ -1,0 +1,183 @@
+<!-- templates/base.html -->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EduLinker</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Iconos de Bootstrap -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+</head>
+<body class="d-flex flex-column min-vh-100">
+
+    <!-- NAVBAR -->
+    
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <!-- Logo -->
+            <a class="navbar-brand" href="{{ url_for('main.home') }}">EduLinker</a>
+
+            <!-- Toggler para mobile -->
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+
+                    <!-- Botones principales -->
+                    <li class="nav-item me-2">
+                        <a class="nav-link btn btn-primary text-white px-3" href="{{ url_for('solicitar.solicitar_cita') }}">
+                            Solicitar Cita
+                        </a>
+                    </li>
+                    <li class="nav-item me-2">
+                        <a class="nav-link btn btn-primary text-white px-3" href="{{ url_for('disponibilidad.disponibilidad_docente') }}">
+                            Disponibilidad
+                        </a>
+                    </li>
+                    <li class="nav-item me-2">
+                        <a class="nav-link btn btn-primary text-white px-3" href="{{ url_for('registro.registro') }}">
+                            Registrar
+                        </a>
+                    </li>
+
+                    <!-- Dropdown Usuarios -->
+                    <li class="nav-item dropdown me-2">
+                        <a class="nav-link dropdown-toggle btn btn-primary text-white px-3" href="#" id="usuariosDropdown" role="button" 
+                        data-bs-toggle="dropdown" aria-expanded="false">
+                            Usuarios
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="usuariosDropdown">
+                            <li><a class="dropdown-item" href="{{ url_for('usuario.lista_administradores') }}">Administradores</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('estudiante.lista_estudiantes') }}">Estudiantes</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('acudiente.lista_acudientes') }}">Acudientes</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('docente.lista_docentes') }}">Docentes</a></li>
+                        </ul>
+                    </li>
+
+                    <!-- Mis Citas Docente (solo docentes o admins) -->
+                    {% if current_user.is_authenticated and (current_user.rol == 'docente' or current_user.rol == 'admin') %}
+                    <li class="nav-item me-2">
+                        <a class="nav-link btn btn-primary text-white px-3" href="{{ url_for('citas.mis_citas_docente') }}">
+                            Mis Citas Docente
+                        </a>
+                    </li>
+                    {% endif %}
+
+                    <!-- Notificaciones (solo docentes) -->
+                    {% if current_user.is_authenticated and current_user.rol == 'docente' %}
+                    <li class="nav-item dropdown me-2">
+                        <a class="nav-link position-relative" href="#" id="notificacionesDropdown" role="button" 
+                        data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="bi bi-bell fs-5"></i>
+                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" id="notificacionesCount">
+                                0
+                            </span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="notificacionesDropdown" id="notificacionesMenu">
+                            <li><span class="dropdown-item text-muted">Cargando...</span></li>
+                        </ul>
+                    </li>
+                    {% endif %}
+
+                    <!-- Dropdown usuario -->
+                    {% if current_user.is_authenticated %}
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="userDropdown" role="button" 
+                        data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="bi bi-person-circle fs-5 me-1"></i>
+                            {{ current_user.nombre }}
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                            <li><a class="dropdown-item" href="{{ url_for('citas.mis_citas') }}">📅 Mis Citas</a></li>
+                            <li><a class="dropdown-item" href="#">Perfil</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <form method="POST" action="{{ url_for('auth.logout') }}" style="margin: 0;">
+                                    <button type="submit" class="dropdown-item text-danger">Cerrar sesión</button>
+                                </form>
+                            </li>
+                        </ul>
+                    </li>
+                    {% endif %}
+
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+
+    <!-- FLASH MESSAGES -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="container mt-3">
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    <!-- MAIN CONTENT -->
+    <div class="container my-5 flex-grow-1">
+        {% block content %}
+        {% endblock %}
+    </div>
+
+    <!-- FOOTER -->
+    <footer class="bg-dark text-white text-center py-3 mt-auto">
+        <div class="container">
+            <p class="mb-0">© 2025 EduLinker - Todos los derechos reservados</p>
+            <small>Desarrollado con <i class="bi bi-heart-fill text-danger"></i> por Jholfrank Rojano</small>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    {% if current_user.is_authenticated and current_user.rol == 'docente' %}
+<script>
+async function actualizarNotificaciones() {
+    try {
+        let res = await fetch("{{ url_for('citas.pendientes_count') }}");
+        let data = await res.json();
+        if(data.success){
+            // actualizar contador
+            document.getElementById("notificacionesCount").textContent = data.count;
+
+            // actualizar dropdown
+            let menu = document.getElementById("notificacionesMenu");
+            menu.innerHTML = "";
+            if(data.citas.length === 0){
+                let li = document.createElement("li");
+                li.innerHTML = '<span class="dropdown-item text-muted">Sin citas pendientes</span>';
+                menu.appendChild(li);
+            } else {
+                data.citas.forEach(c => {
+                    let li = document.createElement("li");
+                    li.innerHTML = `<span class="dropdown-item">
+                        ${c.fecha} ${c.hora_inicio}-${c.hora_fin} - ${c.nombre} ${c.apellido} (${c.rol})
+                    </span>`;
+                    menu.appendChild(li);
+                });
+            }
+        }
+    } catch(e){
+        console.error("Error al obtener notificaciones:", e);
+    }
+}
+
+// Ejecutar al cargar la página
+actualizarNotificaciones();
+
+// Opcional: actualizar cada 30 segundos
+setInterval(actualizarNotificaciones, 30000);
+</script>
+{% endif %}
+
+</body>
+</html>

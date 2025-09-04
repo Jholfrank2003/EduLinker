@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <h2 class="mb-4">Editar Administrador</h2>
+    <form method="POST">
+        <div class="mb-3">
+            <label for="nombre" class="form-label">Nombre</label>
+            <input type="text" name="nombre" id="nombre" value="{{ admin.nombre }}" class="form-control" required>
+        </div>
+        <div class="mb-3">
+            <label for="apellido" class="form-label">Apellido</label>
+            <input type="text" name="apellido" id="apellido" value="{{ admin.apellido }}" class="form-control" required>
+        </div>
+        <div class="mb-3">
+            <label for="correo" class="form-label">Correo</label>
+            <input type="email" name="correo" id="correo" value="{{ admin.correo }}" class="form-control" required>
+        </div>
+        <div class="mb-3">
+            <label for="telefono" class="form-label">Teléfono</label>
+            <input type="text" name="telefono" id="telefono" value="{{ admin.telefono }}" class="form-control" required>
+        </div>
+        <div class="mb-3">
+            <label for="estado" class="form-label">Estado</label>
+            <select name="estado" id="estado" class="form-select">
+                <option value="activo" {% if admin.estado == 'activo' %}selected{% endif %}>Activo</option>
+                <option value="inactivo" {% if admin.estado == 'inactivo' %}selected{% endif %}>Inactivo</option>
+            </select>
+        </div>
+        <div class="mb-3">
+            <label for="password" class="form-label">Contraseña (opcional)</label>
+            <input type="password" name="password" id="password" class="form-control" placeholder="Dejar en blanco si no deseas cambiarla">
+        </div>
+        <button type="submit" class="btn btn-success">Guardar Cambios</button>
+        <a href="{{ url_for('usuario.lista_administradores') }}" class="btn btn-secondary">Cancelar</a>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-4">Editar Acudiente</h2>
+    <form method="POST">
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label>Nombre</label>
+                <input type="text" name="nombre" class="form-control" value="{{ acudiente.nombre }}" required>
+            </div>
+            <div class="col-md-6 mb-3">
+                <label>Apellido</label>
+                <input type="text" name="apellido" class="form-control" value="{{ acudiente.apellido }}" required>
+            </div>
+            <div class="col-md-6 mb-3">
+                <label>Correo</label>
+                <input type="email" name="correo" class="form-control" value="{{ acudiente.correo }}" required>
+            </div>
+            <div class="col-md-6 mb-3">
+                <label>Teléfono</label>
+                <input type="text" name="telefono" class="form-control" value="{{ acudiente.telefono }}">
+            </div>
+
+            <!-- Rol fijo como acudiente -->
+            <input type="hidden" name="rol" value="acudiente">
+            
+            <div class="col-md-6 mb-3">
+                <label>Ocupación</label>
+                <input type="text" name="ocupacion" class="form-control" value="{{ acudiente.ocupacion }}">
+            </div>
+            <div class="col-md-6 mb-3">
+                <label>Contraseña (opcional)</label>
+                <input type="password" name="password" class="form-control" placeholder="Dejar vacío si no desea cambiarla">
+            </div>
+        </div>
+        <button type="submit" class="btn btn-success">Actualizar</button>
+        <a href="{{ url_for('acudiente.lista_acudientes') }}" class="btn btn-secondary">Cancelar</a>
+    </form>
+</div>
+{% endblock %}

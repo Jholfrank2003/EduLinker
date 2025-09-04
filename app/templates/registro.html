@@ -1,0 +1,159 @@
+{% extends 'base.html' %}
+
+{% block title %}Registro{% endblock %}
+
+{% block content %}
+<div class="container mt-5 d-flex justify-content-center">
+    <div class="card shadow-lg border-0 w-75">
+        <div class="card-header bg-primary text-white text-center rounded-top">
+            <h3 class="mb-0">Registro de Usuario</h3>
+        </div>
+        <div class="card-body p-4">
+            <form method="POST" action="{{ url_for('registro.registro') }}" novalidate>
+                <!-- Campos base -->
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="nombre" class="form-label">Nombre</label>
+                        <input type="text" class="form-control" name="nombre" id="nombre" required>
+                        <div class="invalid-feedback">Ingrese un nombre válido.</div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="apellido" class="form-label">Apellido</label>
+                        <input type="text" class="form-control" name="apellido" id="apellido" required>
+                        <div class="invalid-feedback">Ingrese un apellido válido.</div>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="correo" class="form-label">Correo</label>
+                    <input type="email" class="form-control" name="correo" id="correo" required>
+                    <div class="invalid-feedback">Ingrese un correo válido.</div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="telefono" class="form-label">Teléfono</label>
+                    <input type="tel" class="form-control" name="telefono" id="telefono" 
+                           pattern="[0-9]{7,15}" minlength="7" maxlength="15"
+                           placeholder="Ej: 3001234567" required>
+                    <div class="invalid-feedback">El teléfono debe tener entre 7 y 15 dígitos numéricos.</div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="contraseña" class="form-label">Contraseña</label>
+                    <input type="password" class="form-control" name="contraseña" id="contraseña" minlength="6" required>
+                    <div class="invalid-feedback">La contraseña debe tener mínimo 6 caracteres.</div>
+                </div>
+
+                <!-- Rol -->
+                <div class="mb-3">
+                    <label for="rol" class="form-label">Rol</label>
+                    <select name="rol" id="rol" class="form-select" required>
+                        <option value="">Seleccionar Rol</option>
+                        <option value="admin">Administrador</option>
+                        <option value="estudiante">Estudiante</option>
+                        <option value="acudiente">Acudiente</option>
+                        <option value="docente">Docente</option>
+                    </select>
+                    <div class="invalid-feedback">Seleccione un rol.</div>
+                </div>
+
+                <!-- Campos estudiante -->
+                <div id="campos_estudiante" style="display:none;">
+                    <div class="mb-3">
+                        <label for="fecha_nacimiento" class="form-label">Fecha de Nacimiento</label>
+                        <input type="date" class="form-control" name="fecha_nacimiento" id="fecha_nacimiento">
+                        <div class="invalid-feedback">Ingrese la fecha de nacimiento.</div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Grado</label>
+                        <select name="grado_id" id="grado_id" class="form-select">
+                            <option value="">Seleccionar un Grado</option>
+                            {% for grado in grados %}
+                                <option value="{{ grado.id }}">{{ grado.nombre }}</option>
+                            {% endfor %}
+                        </select>
+                        <div class="invalid-feedback">Seleccione un grado.</div>
+                    </div>
+                </div>
+
+                <!-- Campos acudiente -->
+                <div id="campos_acudiente" style="display:none;">
+                    <div class="mb-3">
+                        <label for="ocupacion" class="form-label">Ocupación</label>
+                        <input type="text" class="form-control" name="ocupacion" id="ocupacion">
+                        <div class="invalid-feedback">Ingrese la ocupación.</div>
+                    </div>
+                </div>
+
+                <!-- Campos docente -->
+                <div id="campos_docente" style="display:none;">
+                    <div class="mb-3">
+                        <label for="profesion" class="form-label">Profesión</label>
+                        <input type="text" class="form-control" name="profesion" id="profesion">
+                        <div class="invalid-feedback">Ingrese la profesión.</div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Asignatura</label>
+                        <select name="asignatura_id" id="asignatura_id" class="form-select">
+                            <option value="">Seleccionar una Asignatura</option>
+                            {% for asignatura in asignaturas %}
+                                <option value="{{ asignatura.id }}">{{ asignatura.nombre }}</option>
+                            {% endfor %}
+                        </select>
+                        <div class="invalid-feedback">Seleccione una asignatura.</div>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-success w-100 mt-3 fw-bold">
+                    <i class="bi bi-person-plus"></i> Registrar
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+// Mostrar/ocultar campos según rol
+document.getElementById("rol").addEventListener("change", function() {
+    const estudiante = document.getElementById("campos_estudiante");
+    const acudiente = document.getElementById("campos_acudiente");
+    const docente = document.getElementById("campos_docente");
+
+    estudiante.style.display = "none";
+    acudiente.style.display = "none";
+    docente.style.display = "none";
+
+    document.querySelectorAll("#campos_estudiante input, #campos_estudiante select").forEach(el => el.required = false);
+    document.querySelectorAll("#campos_acudiente input").forEach(el => el.required = false);
+    document.querySelectorAll("#campos_docente input, #campos_docente select").forEach(el => el.required = false);
+
+    if (this.value === "estudiante") {
+        estudiante.style.display = "block";
+        document.getElementById("fecha_nacimiento").required = true;
+        document.getElementById("grado_id").required = true;
+    } else if (this.value === "acudiente") {
+        acudiente.style.display = "block";
+        document.getElementById("ocupacion").required = true;
+    } else if (this.value === "docente") {
+        docente.style.display = "block";
+        document.getElementById("profesion").required = true;
+        document.getElementById("asignatura_id").required = true;
+    }
+});
+
+// Validación en tiempo real
+const inputs = document.querySelectorAll("input, select");
+
+inputs.forEach(input => {
+    input.addEventListener("input", function () {
+        if (this.checkValidity()) {
+            this.classList.remove("is-invalid");
+            this.classList.add("is-valid");
+        } else {
+            this.classList.remove("is-valid");
+            this.classList.add("is-invalid");
+        }
+    });
+});
+</script>
+{% endblock %}

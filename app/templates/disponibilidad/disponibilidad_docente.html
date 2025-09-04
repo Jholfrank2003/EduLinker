@@ -1,0 +1,205 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+  <h2 class="text-center fw-bold mb-4">📅 Disponibilidad del Docente</h2>
+
+  <!-- Contenedor del calendario -->
+  <div id="calendar" class="shadow rounded p-3 bg-white" style="max-width: 1200px; margin: auto;"></div>
+
+  <!-- Toast de feedback -->
+  <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 1080;">
+    <div id="saveToast" class="toast align-items-center text-white bg-success border-0" role="alert" aria-live="assertive" aria-atomic="true">
+      <div class="d-flex">
+        <div class="toast-body">✅ Disponibilidad actualizada correctamente.</div>
+        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal para editar disponibilidad -->
+  <div class="modal fade" id="editModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content shadow-lg border-0 rounded-3">
+        <div class="modal-header bg-primary text-white">
+          <h5 class="modal-title">✏️ Editar Disponibilidad</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <form id="editForm">
+            <input type="hidden" id="eventId">
+            <div class="mb-3">
+              <label for="startTime" class="form-label">Hora inicio</label>
+              <input type="time" id="startTime" class="form-control shadow-sm" required>
+            </div>
+            <div class="mb-3">
+              <label for="endTime" class="form-label">Hora fin</label>
+              <input type="time" id="endTime" class="form-control shadow-sm" required>
+            </div>
+            <div class="mb-3">
+              <label for="estado" class="form-label">Estado</label>
+              <select id="estado" class="form-select shadow-sm">
+                <option value="disponible">✅ Disponible</option>
+                <option value="vacaciones">🌴 Vacaciones</option>
+                <option value="incapacitado">🤒 Incapacitado</option>
+                <option value="inactivo">🚫 Inactivo</option>
+              </select>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer border-0">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="button" class="btn btn-success" id="saveEventBtn">
+            <span class="save-label">💾 Guardar</span>
+            <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FullCalendar CSS -->
+<link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.css" rel="stylesheet">
+
+<!-- FullCalendar JS -->
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
+<!-- Bootstrap Tooltip (Popper) -->
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"></script>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    let calendarEl = document.getElementById("calendar");
+    let editModal = new bootstrap.Modal(document.getElementById('editModal'));
+    let saveToast = new bootstrap.Toast(document.getElementById('saveToast'));
+
+    const toggleSaving = (saving) => {
+        const btn = document.getElementById("saveEventBtn");
+        btn.disabled = saving;
+        btn.querySelector('.spinner-border').classList.toggle('d-none', !saving);
+        btn.querySelector('.save-label').classList.toggle('d-none', saving);
+    };
+
+    let calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: "timeGridWeek",
+        allDaySlot: false,
+        slotMinTime: "05:00:00",
+        slotMaxTime: "16:00:00",
+        hiddenDays: [0,6],
+        locale: "es",
+        expandRows: true,
+        height: "auto",
+        aspectRatio: 1.8,
+        headerToolbar: {
+            left: "prev,next today",
+            center: "title",
+            right: "timeGridWeek,timeGridDay"
+        },
+        buttonText: {
+            today: "Hoy",
+            week: "Semana",
+            day: "Día"
+        },
+        events: "{{ url_for('disponibilidad.disponibilidad_data') }}",
+
+        eventDidMount: function(info) {
+            // Tooltip Bootstrap (muestra "Todo el día" cuando corresponde)
+            let startTime = info.event.startStr.substring(11,16);
+            let endTime = info.event.endStr.substring(11,16);
+            let tooltipText = (startTime === "00:00" && endTime.startsWith("23:59"))
+                ? info.event.title + " (Todo el día)"
+                : info.event.title + " (" + startTime + " - " + endTime + ")";
+
+            new bootstrap.Tooltip(info.el, {
+                title: tooltipText,
+                placement: "top",
+                trigger: "hover",
+                container: "body"
+            });
+        },
+
+        eventClick: function(info) {
+            document.getElementById("eventId").value = info.event.id;
+            document.getElementById("startTime").value = info.event.startStr.substring(11,16);
+            document.getElementById("endTime").value = info.event.endStr.substring(11,16);
+            // Usar el estado crudo enviado por backend (extendedProps)
+            document.getElementById("estado").value = info.event.extendedProps.estado || "disponible";
+            editModal.show();
+        }
+    });
+
+    calendar.render();
+
+    // Guardar cambios
+    document.getElementById("saveEventBtn").addEventListener("click", function() {
+        let eventId = document.getElementById("eventId").value;
+        let startTime = document.getElementById("startTime").value;
+        let endTime = document.getElementById("endTime").value;
+        let estado = document.getElementById("estado").value;
+
+        // Validación simple en frontend: inicio < fin
+        if (startTime >= endTime && estado !== "vacaciones" && estado !== "incapacitado") {
+            alert("⚠️ La hora de inicio debe ser menor que la hora de fin");
+            return;
+        }
+
+        toggleSaving(true);
+        fetch("{{ url_for('disponibilidad.disponibilidad_update') }}", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                id: eventId,
+                hora_inicio: startTime + ":00",
+                hora_fin: endTime + ":00",
+                estado: estado
+            })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                calendar.refetchEvents();
+                editModal.hide();
+                saveToast.show();
+            } else {
+                alert("❌ " + (data.msg || "Error al actualizar disponibilidad"));
+            }
+        })
+        .catch(() => alert("❌ Error de red al actualizar"))
+        .finally(() => toggleSaving(false));
+    });
+});
+</script>
+
+<style>
+/* Encabezado del calendario */
+.fc-toolbar-title {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #2c3e50;
+}
+.fc-button {
+    border-radius: 8px !important;
+    padding: 6px 12px !important;
+    font-weight: 500;
+    transition: 0.3s;
+}
+.fc-button-primary {
+    background: #0d6efd !important;
+    border: none !important;
+}
+.fc-button-primary:hover {
+    background: #084298 !important;
+}
+.fc-button:focus {
+    box-shadow: none !important;
+}
+
+/* Responsivo */
+@media (max-width: 768px) {
+    #calendar {
+        font-size: 0.85rem;
+    }
+}
+</style>
+
+{% endblock %}

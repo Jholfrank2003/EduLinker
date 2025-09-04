@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <h2 class="mb-4">Lista de Docentes Inactivos</h2>
+    <a href="{{ url_for('docente.lista_docentes') }}" class="btn btn-primary mb-3">Volver a Activos</a>
+    <table class="table table-striped table-bordered">
+        <thead class="table-dark">
+            <tr>
+                <th>ID</th>
+                <th>Nombre</th>
+                <th>Apellido</th>
+                <th>Correo</th>
+                <th>Teléfono</th>
+                <th>Rol</th>
+                <th>Estado</th>
+                <th>Profesión</th>
+                <th>Asignaturas</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for docente in docentes %}
+                <tr>
+                    <td>{{ docente.id }}</td>
+                    <td>{{ docente.nombre }}</td>
+                    <td>{{ docente.apellido }}</td>
+                    <td>{{ docente.correo }}</td>
+                    <td>{{ docente.telefono }}</td>
+                    <td>{{ docente.rol }}</td>
+                    <td>{{ docente.estado }}</td>
+                    <td>{{ docente.profesion }}</td>
+                    <td>{{ docente.asignaturas or 'Ninguna' }}</td>
+                    <td>
+                        <form action="{{ url_for('docente.reactivar', docente_id=docente.id) }}" method="POST" style="display:inline;">
+                            <button type="submit" class="btn btn-success btn-sm">Reactivar</button>
+                        </form>
+                    </td>
+                </tr>
+            {% else %}
+                <tr>
+                    <td colspan="10" class="text-center">No hay docentes inactivos.</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
