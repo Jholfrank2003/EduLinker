@@ -12,11 +12,12 @@ def obtener_acudientes():
             u.apellido, 
             u.correo, 
             u.telefono, 
-            u.rol, 
+            r.nombre AS rol,
             u.estado,
             a.ocupacion
         FROM acudiente a
         INNER JOIN usuarios u ON a.usuario_id = u.id
+        INNER JOIN roles r ON u.rol_id = r.id
         WHERE u.estado = 'activo'
     """
     cursor.execute(query)
@@ -35,11 +36,12 @@ def obtener_acudiente_por_id(acudiente_id):
             u.apellido, 
             u.correo, 
             u.telefono, 
-            u.rol, 
+            r.nombre AS rol,
             u.estado,
             a.ocupacion
         FROM acudiente a
         INNER JOIN usuarios u ON a.usuario_id = u.id
+        INNER JOIN roles r ON u.rol_id = r.id
         WHERE u.id = %s
     """
     cursor.execute(query, (acudiente_id,))
@@ -98,11 +100,12 @@ def obtener_acudientes_inactivos():
             u.apellido, 
             u.correo, 
             u.telefono, 
-            u.rol, 
+            r.nombre AS rol,
             u.estado,
             a.ocupacion
         FROM acudiente a
         INNER JOIN usuarios u ON a.usuario_id = u.id
+        INNER JOIN roles r ON u.rol_id = r.id
         WHERE u.estado = 'inactivo'
     """
     cursor.execute(query)

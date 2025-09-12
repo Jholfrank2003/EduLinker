@@ -1,49 +1,94 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="container">
+<div class="container mt-4">
     <h2 class="mb-4">Editar Estudiante</h2>
-    <form method="POST">
-        <div class="mb-3">
-            <label>Nombre</label>
-            <input type="text" name="nombre" class="form-control" value="{{ estudiante.nombre }}" required>
-        </div>
-        <div class="mb-3">
-            <label>Apellido</label>
-            <input type="text" name="apellido" class="form-control" value="{{ estudiante.apellido }}" required>
-        </div>
-        <div class="mb-3">
-            <label>Correo</label>
-            <input type="email" name="correo" class="form-control" value="{{ estudiante.correo }}" required>
-        </div>
-        <div class="mb-3">
-            <label>Teléfono</label>
-            <input type="text" name="telefono" class="form-control" value="{{ estudiante.telefono }}" required>
-        </div>
+    <form method="POST" novalidate>
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label for="nombre" class="form-label">Nombre</label>
+                <input type="text" name="nombre" id="nombre" class="form-control"
+                       value="{{ estudiante.nombre }}"
+                       pattern="[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+"
+                       title="Solo se permiten letras"
+                       required>
+                <div class="invalid-feedback">Ingrese un nombre válido (solo letras).</div>
+            </div>
 
-        <!-- Rol fijo como estudiante -->
-        <input type="hidden" name="rol" value="estudiante">
+            <div class="col-md-6 mb-3">
+                <label for="apellido" class="form-label">Apellido</label>
+                <input type="text" name="apellido" id="apellido" class="form-control"
+                       value="{{ estudiante.apellido }}"
+                       pattern="[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+"
+                       title="Solo se permiten letras"
+                       required>
+                <div class="invalid-feedback">Ingrese un apellido válido (solo letras).</div>
+            </div>
 
-        <div class="mb-3">
-            <label>Grado</label>
-            <select name="grado_id" class="form-control" required>
-                {% for grado in grados %}
-                    <option value="{{ grado.id }}" {% if grado.id == estudiante.grado_id %}selected{% endif %}>
-                        {{ grado.nombre }}
-                    </option>
-                {% endfor %}
-            </select>
+            <div class="col-md-6 mb-3">
+                <label for="correo" class="form-label">Correo</label>
+                <input type="email" name="correo" id="correo" class="form-control"
+                       value="{{ estudiante.correo }}" required>
+                <div class="invalid-feedback">Ingrese un correo válido.</div>
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <label for="telefono" class="form-label">Teléfono</label>
+                <input type="tel" name="telefono" id="telefono" class="form-control"
+                       value="{{ estudiante.telefono }}"
+                       pattern="[0-9]{7,15}" minlength="7" maxlength="15"
+                       placeholder="Ej: 3001234567" required>
+                <div class="invalid-feedback">El teléfono debe tener entre 7 y 15 dígitos numéricos.</div>
+            </div>
+
+            <!-- Rol fijo como estudiante -->
+            <input type="hidden" name="rol_id" value="{{ estudiante.rol_id }}">
+
+            <div class="col-md-6 mb-3">
+                <label for="grado_id" class="form-label">Grado</label>
+                <select name="grado_id" id="grado_id" class="form-select" required>
+                    <option value="">Seleccionar un grado</option>
+                    {% for grado in grados %}
+                        <option value="{{ grado.id }}" {% if grado.id == estudiante.grado_id %}selected{% endif %}>
+                            {{ grado.nombre }}
+                        </option>
+                    {% endfor %}
+                </select>
+                <div class="invalid-feedback">Seleccione un grado.</div>
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <label for="fecha_nacimiento" class="form-label">Fecha de Nacimiento</label>
+                <input type="date" name="fecha_nacimiento" id="fecha_nacimiento" class="form-control"
+                       value="{{ estudiante.fecha_nacimiento }}" required>
+                <div class="invalid-feedback">Ingrese la fecha de nacimiento.</div>
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <label for="password" class="form-label">Nueva Contraseña (opcional)</label>
+                <input type="password" name="password" id="password" class="form-control"
+                       minlength="6"
+                       placeholder="Dejar vacío si no desea cambiarla">
+                <div class="invalid-feedback">La contraseña debe tener mínimo 6 caracteres.</div>
+            </div>
         </div>
-        
-        <div class="mb-3">
-            <label>Fecha de Nacimiento</label>
-            <input type="date" name="fecha_nacimiento" class="form-control" value="{{ estudiante.fecha_nacimiento }}" required>
-        </div>
-        <div class="mb-3">
-            <label>Nueva Contraseña (opcional)</label>
-            <input type="password" name="password" class="form-control">
-        </div>
-        <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+        <button type="submit" class="btn btn-success">Guardar Cambios</button>
+        <a href="{{ url_for('estudiante.lista_estudiantes') }}" class="btn btn-secondary">Cancelar</a>
     </form>
 </div>
+
+<script>
+const inputs = document.querySelectorAll("input, select");
+inputs.forEach(input => {
+    input.addEventListener("input", function () {
+        if (this.checkValidity()) {
+            this.classList.remove("is-invalid");
+            this.classList.add("is-valid");
+        } else {
+            this.classList.remove("is-valid");
+            this.classList.add("is-invalid");
+        }
+    });
+});
+</script>
 {% endblock %}

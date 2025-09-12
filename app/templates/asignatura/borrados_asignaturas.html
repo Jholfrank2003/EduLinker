@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <h2 class="mb-4">Asignaturas Inactivas</h2>
+    <a href="{{ url_for('asignatura.lista_asignaturas') }}" class="btn btn-secondary mb-3">Volver a Asignaturas Activas</a>
+
+    <table class="table table-striped table-bordered">
+        <thead class="table-dark">
+            <tr>
+                <th>ID</th>
+                <th>Nombre</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for asignatura in asignaturas %}
+                <tr>
+                    <td>{{ asignatura.id }}</td>
+                    <td>{{ asignatura.nombre }}</td>
+                    <td>{{ asignatura.estado }}</td>
+                    <td>
+                        <form action="{{ url_for('asignatura.reactivar', asignatura_id=asignatura.id) }}" method="POST" style="display:inline;">
+                            <button type="submit" class="btn btn-success btn-sm">Reactivar</button>
+                        </form>
+                    </td>
+                </tr>
+            {% else %}
+                <tr>
+                    <td colspan="4" class="text-center">No hay asignaturas inactivas.</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

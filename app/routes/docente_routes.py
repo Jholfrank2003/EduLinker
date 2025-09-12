@@ -34,16 +34,29 @@ def editar_docente(docente_id):
         apellido = request.form["apellido"]
         correo = request.form["correo"]
         telefono = request.form["telefono"]
-        rol = request.form.get("rol", "docente")
         profesion = request.form["profesion"]
-        contrasena = request.form.get("contrasena")
+        contrasena = request.form.get("password")
         asignaturas_ids = request.form.getlist("asignaturas")
 
-        actualizar_docente(docente_id, nombre, apellido, correo, telefono, rol, profesion, contrasena, asignaturas_ids)
-        flash("Docente actualizado correctamente", "success")
+        rol_id = docente["rol_id"]
+
+        actualizar_docente(
+            docente_id,
+            nombre,
+            apellido,
+            correo,
+            telefono,
+            rol_id,
+            profesion,
+            contrasena,
+            asignaturas_ids
+        )
+
+        flash("Docente actualizado correctamente ✅", "success")
         return redirect(url_for("docente.lista_docentes"))
 
     return render_template("docente/editar_docente.html", docente=docente, asignaturas=asignaturas)
+
 
 
 @docente_bp.route('/eliminar/<int:docente_id>', methods=['POST'])

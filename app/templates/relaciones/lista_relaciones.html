@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container">
+    <h2 class="mb-4">Relaciones Acudiente - Estudiante</h2>
+    <a href="{{ url_for('relaciones.crear_relaciones') }}" class="btn btn-success mb-3">➕ Nueva Relación</a>
+    <table class="table table-striped table-bordered">
+        <thead class="table-dark">
+            <tr>
+                <th>ID</th>
+                <th>Acudiente</th>
+                <th>Estudiante</th>
+                <th>Grado</th>
+                <th>Parentesco</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for r in relaciones %}
+            <tr>
+                <td>{{ r.id }}</td>
+                <td>{{ r.acudiente_nombre }} {{ r.acudiente_apellido }}</td>
+                <td>{{ r.estudiante_nombre }} {{ r.estudiante_apellido }}</td>
+                <td>{{ r.grado }}</td>
+                <td>{{ r.parentesco }}</td>
+                <td>
+                    <form action="{{ url_for('relaciones.eliminar', relacion_id=r.id) }}" method="POST" style="display:inline;">
+                        <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('¿Eliminar relación?')">Eliminar</button>
+                    </form>
+                </td>
+            </tr>
+        {% else %}
+            <tr><td colspan="6" class="text-center">No hay relaciones registradas</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

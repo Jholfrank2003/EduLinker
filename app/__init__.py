@@ -46,6 +46,15 @@ def create_app():
     from .routes.docente_routes import docente_bp
     app.register_blueprint(docente_bp)
     
+    from .routes.roles_routes import roles_bp
+    app.register_blueprint(roles_bp)
+    
+    from .routes.asignatura_routes import asignatura_bp
+    app.register_blueprint(asignatura_bp)
+    
+    from .routes.relaciones_routes import relaciones_bp
+    app.register_blueprint(relaciones_bp)
+    
     #disponibilidad
     from .routes.disponibilidad_routes import disponibilidad_bp
     app.register_blueprint(disponibilidad_bp)

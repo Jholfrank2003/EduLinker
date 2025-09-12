@@ -1,15 +1,18 @@
+from flask import flash, render_template
 from app import mysql
 import MySQLdb.cursors
 from werkzeug.security import generate_password_hash
+import re
+
 
 
 # ---------------- Registrar un Nuevo Usuario ----------------
-def crear_usuario(nombre, apellido, correo, telefono, contrasena, rol):
+def crear_usuario(nombre, apellido, correo, telefono, contrasena, rol_id):
     cur = mysql.connection.cursor()
     cur.execute("""
-        INSERT INTO usuarios (nombre, apellido, correo, telefono, contrasena, rol)
-        VALUES (%s, %s, %s, %s, %s, %s)
-    """, (nombre, apellido, correo, telefono, contrasena, rol))
+        INSERT INTO usuarios (nombre, apellido, correo, telefono, contrasena, rol_id, estado)
+        VALUES (%s, %s, %s, %s, %s, %s, 'activo')
+    """, (nombre, apellido, correo, telefono, contrasena, rol_id))
     mysql.connection.commit()
     usuario_id = cur.lastrowid
     cur.close()
@@ -43,26 +46,42 @@ def registrar_docente(usuario_id, profesion, asignaturas):
     docente_id = cur.lastrowid
 
     for asignatura_id in asignaturas:
-        cur.execute("""
-            INSERT INTO docente_asignatura (docente_id, asignatura_id)
-            VALUES (%s, %s)
-        """, (docente_id, asignatura_id))
+        if asignatura_id:
+            cur.execute("""
+                INSERT INTO docente_asignatura (docente_id, asignatura_id)
+                VALUES (%s, %s)
+            """, (docente_id, asignatura_id))
 
-# ---------------- Crear Disponibilidad de Luves a Viernes con estado Inactivo ----------------
+    # Crear disponibilidad inicial
     dias = ['lunes', 'martes', 'miercoles', 'jueves', 'viernes']
     for dia in dias:
-        estado_inicial = 'inactivo' 
-        hora_inicio = '07:00:00'
-        hora_fin = '15:00:00'
-
         cur.execute("""
             INSERT INTO disponibilidad (docente_id, dia, hora_inicio, hora_fin, estado)
             VALUES (%s, %s, %s, %s, %s)
-        """, (docente_id, dia, hora_inicio, hora_fin, estado_inicial))
+        """, (docente_id, dia, '07:00:00', '15:00:00', 'inactivo'))
 
     mysql.connection.commit()
     cur.close()
     return docente_id
+
+
+
+# ---------------- Obtener todos los Roles ----------------
+def obtener_roles():
+    cur = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+    cur.execute("SELECT id, nombre FROM roles")
+    roles = cur.fetchall()
+    cur.close()
+    return roles
+
+def obtener_nombre_rol(rol_id):
+    cur = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+    cur.execute("SELECT nombre FROM roles WHERE id = %s", (rol_id,))
+    rol = cur.fetchone()
+    cur.close()
+    if rol:
+        return rol['nombre']
+    return None
 
 
 # ---------------- Obtener todos los Grados ----------------
@@ -89,28 +108,34 @@ def obtener_administradores():
     cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
     query = """
         SELECT 
-            id, nombre, apellido, correo, telefono, rol, estado
-        FROM usuarios
-        WHERE rol = 'admin' AND estado = 'activo'
+            u.id, u.nombre, u.apellido, u.correo, u.telefono, 
+            r.nombre AS rol, u.estado
+        FROM usuarios u
+        JOIN roles r ON u.rol_id = r.id
+        WHERE r.nombre = 'admin' AND u.estado = 'activo'
     """
     cursor.execute(query)
     administradores = cursor.fetchall()
     cursor.close()
     return administradores
 
+
 # ---------------- Obtener Administrador del Usuario ----------------
 def obtener_administrador_por_id(admin_id):
     cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
     query = """
         SELECT 
-            id, nombre, apellido, correo, telefono, rol, estado
-        FROM usuarios
-        WHERE id = %s AND rol = 'admin'
+            u.id, u.nombre, u.apellido, u.correo, u.telefono, 
+            r.nombre AS rol, u.estado
+        FROM usuarios u
+        JOIN roles r ON u.rol_id = r.id
+        WHERE u.id = %s AND r.nombre = 'admin'
     """
     cursor.execute(query, (admin_id,))
     admin = cursor.fetchone()
     cursor.close()
     return admin
+
 
 # ---------------- Actualizar Datos del Administrador ----------------
 def actualizar_administrador(admin_id, nombre, apellido, correo, telefono, estado, password=None):
@@ -120,15 +145,19 @@ def actualizar_administrador(admin_id, nombre, apellido, correo, telefono, estad
         hashed_password = generate_password_hash(password)
         query = """
             UPDATE usuarios
-            SET nombre=%s, apellido=%s, correo=%s, telefono=%s, estado=%s, contrasena=%s
-            WHERE id=%s AND rol='admin'
+            SET nombre=%s, apellido=%s, correo=%s, telefono=%s, estado=%s {extra}
+            WHERE id=%s AND rol_id = (
+                SELECT id FROM roles WHERE nombre = 'admin'
+            )
         """
         cursor.execute(query, (nombre, apellido, correo, telefono, estado, hashed_password, admin_id))
     else:
         query = """
             UPDATE usuarios
-            SET nombre=%s, apellido=%s, correo=%s, telefono=%s, estado=%s
-            WHERE id=%s AND rol='admin'
+            SET nombre=%s, apellido=%s, correo=%s, telefono=%s, estado=%s {extra}
+            WHERE id=%s AND rol_id = (
+                SELECT id FROM roles WHERE nombre = 'admin'
+            )
         """
         cursor.execute(query, (nombre, apellido, correo, telefono, estado, admin_id))
 
@@ -139,19 +168,28 @@ def actualizar_administrador(admin_id, nombre, apellido, correo, telefono, estad
 # ---------------- Obtener el Registro de Citas del Usuario ----------------
 def eliminar_administrador(admin_id):
     cursor = mysql.connection.cursor()
-    query = "UPDATE usuarios SET estado='inactivo' WHERE id=%s AND rol='admin'"
+    query = """
+        UPDATE usuarios 
+        SET estado='inactivo' 
+        WHERE id=%s AND rol_id = (
+            SELECT id FROM roles WHERE nombre = 'admin'
+        )
+    """
     cursor.execute(query, (admin_id,))
     mysql.connection.commit()
     cursor.close()
+
 
 # ---------------- Cambiar el estado del Administrador a Inactivo ----------------
 def obtener_administradores_inactivos():
     cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
     query = """
         SELECT 
-            id, nombre, apellido, correo, telefono, rol, estado
-        FROM usuarios
-        WHERE rol = 'admin' AND estado = 'inactivo'
+            u.id, u.nombre, u.apellido, u.correo, u.telefono, 
+            r.nombre AS rol, u.estado
+        FROM usuarios u
+        JOIN roles r ON u.rol_id = r.id
+        WHERE r.nombre = 'admin' AND u.estado = 'inactivo'
     """
     cursor.execute(query)
     administradores = cursor.fetchall()
@@ -159,10 +197,74 @@ def obtener_administradores_inactivos():
     return administradores
 
 
+
 # ---------------- Reactivar el Administrador ----------------
 def reactivar_administrador(admin_id):
     cursor = mysql.connection.cursor()
-    query = "UPDATE usuarios SET estado='activo' WHERE id=%s AND rol='admin'"
+    query = """
+        UPDATE usuarios 
+        SET estado='activo' 
+        WHERE id=%s AND rol_id = (
+            SELECT id FROM roles WHERE nombre = 'admin'
+        )
+    """
     cursor.execute(query, (admin_id,))
     mysql.connection.commit()
     cursor.close()
+
+
+
+solo_letras = re.compile(r'^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$')
+solo_numeros = re.compile(r'^\d{7,15}$')
+solo_correo = re.compile(r'^[\w\.-]+@[\w\.-]+\.\w+$')
+
+
+def validar_usuario(nombre, apellido, correo, telefono, contrasena):
+    if not nombre or not solo_letras.match(nombre):
+        return False, "El nombre solo puede contener letras."
+
+    if not apellido or not solo_letras.match(apellido):
+        return False, "El apellido solo puede contener letras."
+
+    if not correo or not solo_correo.match(correo):
+        return False, "Ingrese un correo válido."
+
+    if not telefono or not solo_numeros.match(telefono):
+        return False, "El teléfono debe tener entre 7 y 15 dígitos numéricos."
+
+    if not contrasena or len(contrasena) < 6:
+        return False, "La contraseña debe tener mínimo 6 caracteres."
+
+    return True, None
+
+
+def validar_estudiante(grado_id, fecha_nacimiento):
+    if not grado_id:
+        return False, "Debe seleccionar un grado."
+    if not fecha_nacimiento:
+        return False, "Debe ingresar la fecha de nacimiento."
+    return True, None
+
+
+def validar_acudiente(ocupacion):
+    if not ocupacion or not solo_letras.match(ocupacion):
+        return False, "La ocupación solo puede contener letras."
+    return True, None
+
+
+def validar_docente(profesion, asignaturas):
+    if not profesion or not solo_letras.match(profesion):
+        return False, "La profesión solo puede contener letras."
+    if not asignaturas or not any(asignaturas):
+        return False, "Debe seleccionar al menos una asignatura."
+    return True, None
+
+
+# ------------------- HELPER -------------------
+def manejar_error(msg, roles, grados, asignaturas, form_data, asignaturas_seleccionadas=None):
+    flash(msg, "danger")
+    return render_template(
+        "registro.html", 
+        roles=roles, grados=grados, asignaturas=asignaturas,
+        form_data=form_data, asignaturas_seleccionadas=asignaturas_seleccionadas
+    )

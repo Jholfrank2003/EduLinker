@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-4">Editar Rol</h2>
+    <form method="POST" novalidate>
+        <div class="mb-3">
+            <label for="nombre" class="form-label">Nombre del Rol</label>
+            <input type="text" class="form-control" id="nombre" name="nombre"
+                   value="{{ rol.nombre }}"
+                   pattern="[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+"
+                   title="Solo se permiten letras"
+                   required>
+            <div class="invalid-feedback">Ingrese un nombre válido (solo letras).</div>
+        </div>
+
+        <div class="mb-3">
+            <label for="descripcion" class="form-label">Descripción</label>
+            <textarea class="form-control" id="descripcion" name="descripcion" rows="3">{{ rol.descripcion }}</textarea>
+        </div>
+
+        <button type="submit" class="btn btn-success">Actualizar</button>
+        <a href="{{ url_for('roles.lista_roles') }}" class="btn btn-secondary">Cancelar</a>
+    </form>
+</div>
+
+<script>
+const inputs = document.querySelectorAll("input, select, textarea");
+inputs.forEach(input => {
+    input.addEventListener("input", function () {
+        if (this.checkValidity()) {
+            this.classList.remove("is-invalid");
+            this.classList.add("is-valid");
+        } else {
+            this.classList.remove("is-valid");
+            this.classList.add("is-invalid");
+        }
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-4">Nueva Relación Acudiente - Estudiante</h2>
+    <form method="POST">
+        <div class="mb-3">
+            <label for="acudiente_id" class="form-label">Acudiente</label>
+            <select name="acudiente_id" id="acudiente_id" class="form-select" required>
+                <option value="" disabled selected>Seleccione un acudiente</option>
+                {% for a in acudientes %}
+                    <option value="{{ a.id }}">{{ a.nombre }} {{ a.apellido }} ({{ a.correo }})</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="mb-3">
+            <label for="estudiante_id" class="form-label">Estudiante</label>
+            <select name="estudiante_id" id="estudiante_id" class="form-select" required>
+                <option value="" disabled selected>Seleccione un estudiante</option>
+                {% for e in estudiantes %}
+                    <option value="{{ e.id }}">{{ e.nombre }} {{ e.apellido }} - {{ e.grado }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="mb-3">
+            <label for="parentesco" class="form-label">Parentesco</label>
+            <select class="form-select" id="parentesco" name="parentesco" required>
+                <option value="" disabled selected>Seleccione un parentesco</option>
+                {% for p in parentescos %}
+                    <option value="{{ p }}">{{ p }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        
+
+        <button type="submit" class="btn btn-success">Guardar</button>
+        <a href="{{ url_for('relaciones.lista_relaciones') }}" class="btn btn-secondary">Cancelar</a>
+    </form>
+</div>
+{% endblock %}

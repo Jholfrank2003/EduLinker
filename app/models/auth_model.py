@@ -19,7 +19,13 @@ class User(UserMixin):
 
 def get_user_by_id(user_id):
     cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-    cursor.execute("SELECT * FROM usuarios WHERE id = %s", (user_id,))
+    cursor.execute("""
+        SELECT u.id, u.nombre, u.apellido, u.correo, u.estado, u.contrasena,
+               r.nombre AS rol
+        FROM usuarios u
+        JOIN roles r ON u.rol_id = r.id
+        WHERE u.id = %s
+    """, (user_id,))
     user = cursor.fetchone()
     cursor.close()
 
@@ -27,9 +33,9 @@ def get_user_by_id(user_id):
         return User(
             id=user["id"],
             nombre=user["nombre"],
-            apellido=user["apellido"],  
+            apellido=user["apellido"],
             correo=user["correo"],
-            rol=user["rol"],
+            rol=user["rol"],  # aquí ya es r.nombre
             estado=user["estado"],
             contrasena=user["contrasena"]
         )
@@ -38,7 +44,13 @@ def get_user_by_id(user_id):
 
 def get_user_by_email(correo):
     cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-    cursor.execute("SELECT * FROM usuarios WHERE correo = %s", (correo,))
+    cursor.execute("""
+        SELECT u.id, u.nombre, u.apellido, u.correo, u.estado, u.contrasena,
+               r.nombre AS rol
+        FROM usuarios u
+        JOIN roles r ON u.rol_id = r.id
+        WHERE u.correo = %s
+    """, (correo,))
     user = cursor.fetchone()
     cursor.close()
 
@@ -46,11 +58,12 @@ def get_user_by_email(correo):
         return User(
             id=user["id"],
             nombre=user["nombre"],
-            apellido=user["apellido"], 
+            apellido=user["apellido"],
             correo=user["correo"],
-            rol=user["rol"],
+            rol=user["rol"],  # ahora funciona porque viene de roles.nombre
             estado=user["estado"],
             contrasena=user["contrasena"]
         )
     return None
+
 

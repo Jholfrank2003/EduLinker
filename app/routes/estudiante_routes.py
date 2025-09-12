@@ -35,17 +35,18 @@ def editar_estudiante(estudiante_id):
         apellido = request.form['apellido']
         correo = request.form['correo']
         telefono = request.form['telefono']
-        rol = request.form.get("rol", "estudiante")
         grado_id = request.form['grado_id']
         fecha_nacimiento = request.form['fecha_nacimiento']
         contrasena = request.form.get('contrasena')
+        
+        rol_id = estudiante["rol_id"]
 
-
-        actualizar_estudiante(estudiante_id, nombre, apellido, correo, telefono, rol, contrasena, grado_id, fecha_nacimiento    )
+        actualizar_estudiante(estudiante_id, nombre, apellido, correo, telefono, rol_id, contrasena, grado_id, fecha_nacimiento)
         flash("Estudiante actualizado correctamente", "success")
         return redirect(url_for('estudiante.lista_estudiantes'))
 
     return render_template("estudiante/editar_estudiante.html", estudiante=estudiante, grados=grados)
+
 
 
 @estudiante_bp.route('/eliminar/<int:estudiante_id>')

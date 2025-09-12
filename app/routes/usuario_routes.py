@@ -32,9 +32,9 @@ def editar_administrador(admin_id):
         actualizar_administrador(admin_id, nombre, apellido, correo, telefono, estado, password if password else None)
 
         flash("Administrador actualizado correctamente.", "success")
-        return redirect(url_for('usuario.lista_administradores'))
+        return redirect(url_for('usuario.usuario.html'))
 
-    return render_template("usuario/editar_administrador.html", admin=admin)
+    return render_template("usuario/editar_usuario.html", admin=admin)
 
 
 @usuario_bp.route('/eliminar/<int:admin_id>', methods=['POST'])

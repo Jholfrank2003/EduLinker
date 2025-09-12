@@ -10,30 +10,38 @@
         </div>
         <div class="card-body p-4">
             <form method="POST" action="{{ url_for('registro.registro') }}" novalidate>
-                <!-- Campos base -->
                 <div class="row">
                     <div class="col-md-6 mb-3">
                         <label for="nombre" class="form-label">Nombre</label>
-                        <input type="text" class="form-control" name="nombre" id="nombre" required>
-                        <div class="invalid-feedback">Ingrese un nombre válido.</div>
+                        <input type="text" class="form-control" name="nombre" id="nombre"
+                               value="{{ form_data.nombre if form_data else '' }}"
+                               pattern="[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+" 
+                               title="Solo se permiten letras" required>
+                        <div class="invalid-feedback">Ingrese un nombre válido (solo letras).</div>
                     </div>
                     <div class="col-md-6 mb-3">
                         <label for="apellido" class="form-label">Apellido</label>
-                        <input type="text" class="form-control" name="apellido" id="apellido" required>
-                        <div class="invalid-feedback">Ingrese un apellido válido.</div>
+                        <input type="text" class="form-control" name="apellido" id="apellido"
+                               value="{{ form_data.apellido if form_data else '' }}"
+                               pattern="[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+" 
+                               title="Solo se permiten letras" required>
+                        <div class="invalid-feedback">Ingrese un apellido válido (solo letras).</div>
                     </div>
                 </div>
+                
 
                 <div class="mb-3">
                     <label for="correo" class="form-label">Correo</label>
-                    <input type="email" class="form-control" name="correo" id="correo" required>
+                    <input type="email" class="form-control" name="correo" id="correo"
+                           value="{{ form_data.correo if form_data else '' }}" required>
                     <div class="invalid-feedback">Ingrese un correo válido.</div>
                 </div>
 
                 <div class="mb-3">
                     <label for="telefono" class="form-label">Teléfono</label>
-                    <input type="tel" class="form-control" name="telefono" id="telefono" 
+                    <input type="tel" class="form-control" name="telefono" id="telefono"
                            pattern="[0-9]{7,15}" minlength="7" maxlength="15"
+                           value="{{ form_data.telefono if form_data else '' }}"
                            placeholder="Ej: 3001234567" required>
                     <div class="invalid-feedback">El teléfono debe tener entre 7 y 15 dígitos numéricos.</div>
                 </div>
@@ -44,24 +52,25 @@
                     <div class="invalid-feedback">La contraseña debe tener mínimo 6 caracteres.</div>
                 </div>
 
-                <!-- Rol -->
                 <div class="mb-3">
-                    <label for="rol" class="form-label">Rol</label>
-                    <select name="rol" id="rol" class="form-select" required>
+                    <label for="rol_id" class="form-label">Rol</label>
+                    <select name="rol_id" id="rol_id" class="form-select" required>
                         <option value="">Seleccionar Rol</option>
-                        <option value="admin">Administrador</option>
-                        <option value="estudiante">Estudiante</option>
-                        <option value="acudiente">Acudiente</option>
-                        <option value="docente">Docente</option>
+                        {% for rol in roles %}
+                            <option value="{{ rol.id }}"
+                                {% if form_data and form_data.rol_id == rol.id|string %}selected{% endif %}>
+                                {{ rol.nombre | capitalize }}
+                            </option>
+                        {% endfor %}
                     </select>
                     <div class="invalid-feedback">Seleccione un rol.</div>
                 </div>
 
-                <!-- Campos estudiante -->
                 <div id="campos_estudiante" style="display:none;">
                     <div class="mb-3">
                         <label for="fecha_nacimiento" class="form-label">Fecha de Nacimiento</label>
-                        <input type="date" class="form-control" name="fecha_nacimiento" id="fecha_nacimiento">
+                        <input type="date" class="form-control" name="fecha_nacimiento" id="fecha_nacimiento"
+                               value="{{ form_data.fecha_nacimiento if form_data else '' }}">
                         <div class="invalid-feedback">Ingrese la fecha de nacimiento.</div>
                     </div>
                     <div class="mb-3">
@@ -69,38 +78,44 @@
                         <select name="grado_id" id="grado_id" class="form-select">
                             <option value="">Seleccionar un Grado</option>
                             {% for grado in grados %}
-                                <option value="{{ grado.id }}">{{ grado.nombre }}</option>
+                                <option value="{{ grado.id }}"
+                                    {% if form_data and form_data.grado_id == grado.id|string %}selected{% endif %}>
+                                    {{ grado.nombre }}
+                                </option>
                             {% endfor %}
                         </select>
                         <div class="invalid-feedback">Seleccione un grado.</div>
                     </div>
                 </div>
 
-                <!-- Campos acudiente -->
                 <div id="campos_acudiente" style="display:none;">
                     <div class="mb-3">
                         <label for="ocupacion" class="form-label">Ocupación</label>
-                        <input type="text" class="form-control" name="ocupacion" id="ocupacion">
+                        <input type="text" class="form-control" name="ocupacion" id="ocupacion"
+                               value="{{ form_data.ocupacion if form_data else '' }}">
                         <div class="invalid-feedback">Ingrese la ocupación.</div>
                     </div>
                 </div>
 
-                <!-- Campos docente -->
                 <div id="campos_docente" style="display:none;">
                     <div class="mb-3">
                         <label for="profesion" class="form-label">Profesión</label>
-                        <input type="text" class="form-control" name="profesion" id="profesion">
+                        <input type="text" class="form-control" name="profesion" id="profesion"
+                               value="{{ form_data.profesion if form_data else '' }}">
                         <div class="invalid-feedback">Ingrese la profesión.</div>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">Asignatura</label>
-                        <select name="asignatura_id" id="asignatura_id" class="form-select">
-                            <option value="">Seleccionar una Asignatura</option>
+                        <label class="form-label">Asignaturas</label>
+                        <select name="asignatura_id" id="asignatura_id" class="form-select" multiple>
                             {% for asignatura in asignaturas %}
-                                <option value="{{ asignatura.id }}">{{ asignatura.nombre }}</option>
+                                <option value="{{ asignatura.id }}"
+                                    {% if asignaturas_seleccionadas and asignatura.id|string in asignaturas_seleccionadas %}selected{% endif %}>
+                                    {{ asignatura.nombre }}
+                                </option>
                             {% endfor %}
                         </select>
-                        <div class="invalid-feedback">Seleccione una asignatura.</div>
+                        <small class="text-muted">Mantén presionada CTRL (o SHIFT) para seleccionar varias asignaturas</small>
+                        <div class="invalid-feedback">Seleccione al menos una asignatura.</div>
                     </div>
                 </div>
 
@@ -113,47 +128,38 @@
 </div>
 
 <script>
-// Mostrar/ocultar campos según rol
-document.getElementById("rol").addEventListener("change", function() {
-    const estudiante = document.getElementById("campos_estudiante");
-    const acudiente = document.getElementById("campos_acudiente");
-    const docente = document.getElementById("campos_docente");
-
-    estudiante.style.display = "none";
-    acudiente.style.display = "none";
-    docente.style.display = "none";
-
-    document.querySelectorAll("#campos_estudiante input, #campos_estudiante select").forEach(el => el.required = false);
-    document.querySelectorAll("#campos_acudiente input").forEach(el => el.required = false);
-    document.querySelectorAll("#campos_docente input, #campos_docente select").forEach(el => el.required = false);
-
-    if (this.value === "estudiante") {
-        estudiante.style.display = "block";
-        document.getElementById("fecha_nacimiento").required = true;
-        document.getElementById("grado_id").required = true;
-    } else if (this.value === "acudiente") {
-        acudiente.style.display = "block";
-        document.getElementById("ocupacion").required = true;
-    } else if (this.value === "docente") {
-        docente.style.display = "block";
-        document.getElementById("profesion").required = true;
-        document.getElementById("asignatura_id").required = true;
+    function toggleCampos(rol) {
+        const estudiante = document.getElementById("campos_estudiante");
+        const acudiente = document.getElementById("campos_acudiente");
+        const docente = document.getElementById("campos_docente");
+    
+        [estudiante, acudiente, docente].forEach(div => {
+            div.style.display = "none";
+            div.querySelectorAll("input, select").forEach(el => el.value = "");
+        });
+    
+        if (rol === "estudiante") estudiante.style.display = "block";
+        if (rol === "acudiente") acudiente.style.display = "block";
+        if (rol === "docente") docente.style.display = "block";
     }
-});
-
-// Validación en tiempo real
-const inputs = document.querySelectorAll("input, select");
-
-inputs.forEach(input => {
-    input.addEventListener("input", function () {
-        if (this.checkValidity()) {
-            this.classList.remove("is-invalid");
-            this.classList.add("is-valid");
-        } else {
-            this.classList.remove("is-valid");
-            this.classList.add("is-invalid");
-        }
+    
+    document.getElementById("rol_id").addEventListener("change", function() {
+        const selectedText = this.options[this.selectedIndex].text.toLowerCase();
+        toggleCampos(selectedText);
     });
-});
-</script>
+    
+    const inputs = document.querySelectorAll("input, select");
+    inputs.forEach(input => {
+        input.addEventListener("input", function () {
+            if (this.checkValidity()) {
+                this.classList.remove("is-invalid");
+                this.classList.add("is-valid");
+            } else {
+                this.classList.remove("is-valid");
+                this.classList.add("is-invalid");
+            }
+        });
+    });
+    </script>
+    
 {% endblock %}

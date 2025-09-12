@@ -3,39 +3,81 @@
 {% block content %}
 <div class="container mt-4">
     <h2 class="mb-4">Editar Acudiente</h2>
-    <form method="POST">
+    <form method="POST" novalidate>
         <div class="row">
             <div class="col-md-6 mb-3">
-                <label>Nombre</label>
-                <input type="text" name="nombre" class="form-control" value="{{ acudiente.nombre }}" required>
+                <label for="nombre" class="form-label">Nombre</label>
+                <input type="text" name="nombre" id="nombre" class="form-control"
+                       value="{{ acudiente.nombre }}"
+                       pattern="[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+"
+                       title="Solo se permiten letras"
+                       required>
+                <div class="invalid-feedback">Ingrese un nombre válido (solo letras).</div>
             </div>
+
             <div class="col-md-6 mb-3">
-                <label>Apellido</label>
-                <input type="text" name="apellido" class="form-control" value="{{ acudiente.apellido }}" required>
+                <label for="apellido" class="form-label">Apellido</label>
+                <input type="text" name="apellido" id="apellido" class="form-control"
+                       value="{{ acudiente.apellido }}"
+                       pattern="[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+"
+                       title="Solo se permiten letras"
+                       required>
+                <div class="invalid-feedback">Ingrese un apellido válido (solo letras).</div>
             </div>
+
             <div class="col-md-6 mb-3">
-                <label>Correo</label>
-                <input type="email" name="correo" class="form-control" value="{{ acudiente.correo }}" required>
+                <label for="correo" class="form-label">Correo</label>
+                <input type="email" name="correo" id="correo" class="form-control"
+                       value="{{ acudiente.correo }}" required>
+                <div class="invalid-feedback">Ingrese un correo válido.</div>
             </div>
+
             <div class="col-md-6 mb-3">
-                <label>Teléfono</label>
-                <input type="text" name="telefono" class="form-control" value="{{ acudiente.telefono }}">
+                <label for="telefono" class="form-label">Teléfono</label>
+                <input type="tel" name="telefono" id="telefono" class="form-control"
+                       value="{{ acudiente.telefono }}"
+                       pattern="[0-9]{7,15}" minlength="7" maxlength="15"
+                       placeholder="Ej: 3001234567" required>
+                <div class="invalid-feedback">El teléfono debe tener entre 7 y 15 dígitos numéricos.</div>
             </div>
 
             <!-- Rol fijo como acudiente -->
-            <input type="hidden" name="rol" value="acudiente">
-            
+            <input type="hidden" name="rol_id" value="{{ acudiente.rol_id }}">
+
             <div class="col-md-6 mb-3">
-                <label>Ocupación</label>
-                <input type="text" name="ocupacion" class="form-control" value="{{ acudiente.ocupacion }}">
+                <label for="ocupacion" class="form-label">Ocupación</label>
+                <input type="text" name="ocupacion" id="ocupacion" class="form-control"
+                       value="{{ acudiente.ocupacion }}"
+                       pattern="[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+"
+                       title="Solo se permiten letras">
+                <div class="invalid-feedback">Ingrese una ocupación válida (solo letras).</div>
             </div>
+
             <div class="col-md-6 mb-3">
-                <label>Contraseña (opcional)</label>
-                <input type="password" name="password" class="form-control" placeholder="Dejar vacío si no desea cambiarla">
+                <label for="password" class="form-label">Contraseña (opcional)</label>
+                <input type="password" name="password" id="password" class="form-control"
+                       minlength="6"
+                       placeholder="Dejar vacío si no desea cambiarla">
+                <div class="invalid-feedback">La contraseña debe tener mínimo 6 caracteres.</div>
             </div>
         </div>
         <button type="submit" class="btn btn-success">Actualizar</button>
         <a href="{{ url_for('acudiente.lista_acudientes') }}" class="btn btn-secondary">Cancelar</a>
     </form>
 </div>
+
+<script>
+const inputs = document.querySelectorAll("input, select");
+inputs.forEach(input => {
+    input.addEventListener("input", function () {
+        if (this.checkValidity()) {
+            this.classList.remove("is-invalid");
+            this.classList.add("is-valid");
+        } else {
+            this.classList.remove("is-valid");
+            this.classList.add("is-invalid");
+        }
+    });
+});
+</script>
 {% endblock %}
