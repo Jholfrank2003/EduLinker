@@ -7,6 +7,7 @@
         <div class="mb-3">
             <label for="nombre" class="form-label">Nombre del Rol</label>
             <input type="text" class="form-control" id="nombre" name="nombre"
+                   value="{{ form_data.nombre if form_data else '' }}"
                    pattern="[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+"
                    title="Solo se permiten letras"
                    required>
@@ -16,7 +17,8 @@
         <div class="mb-3">
             <label for="descripcion" class="form-label">Descripción</label>
             <textarea class="form-control" id="descripcion" name="descripcion" rows="3"
-                      placeholder="Opcional: explica el rol"></textarea>
+                    required
+                    placeholder="Obligatorio: explica el rol">{{ form_data.descripcion if form_data else '' }}</textarea>
         </div>
 
         <button type="submit" class="btn btn-success">Guardar</button>
@@ -25,7 +27,7 @@
 </div>
 
 <script>
-const inputs = document.querySelectorAll("input, select, textarea");
+const inputs = document.querySelectorAll("input, textarea");
 inputs.forEach(input => {
     input.addEventListener("input", function () {
         if (this.checkValidity()) {

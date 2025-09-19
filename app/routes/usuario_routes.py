@@ -8,6 +8,9 @@ from app.models.usuario_model import (
     reactivar_administrador
 )
 
+from app.utils.validaciones import validar_admin_form
+
+
 usuario_bp = Blueprint('usuario', __name__, url_prefix="/usuario")
 
 
@@ -29,12 +32,18 @@ def editar_administrador(admin_id):
         estado = request.form['estado']
         password = request.form['password']
 
+        valido, error_msg = validar_admin_form(nombre, apellido, correo, telefono, password if password else None)
+        if not valido:
+            flash(error_msg, "danger")
+            return render_template("usuario/editar_usuario.html", admin=admin)
+
         actualizar_administrador(admin_id, nombre, apellido, correo, telefono, estado, password if password else None)
 
         flash("Administrador actualizado correctamente.", "success")
-        return redirect(url_for('usuario.usuario.html'))
+        return redirect(url_for('usuario.lista_administradores'))
 
     return render_template("usuario/editar_usuario.html", admin=admin)
+
 
 
 @usuario_bp.route('/eliminar/<int:admin_id>', methods=['POST'])

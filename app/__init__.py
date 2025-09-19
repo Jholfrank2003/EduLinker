@@ -30,6 +30,9 @@ def create_app():
 
     from .routes.registro_routes import registro_bp
     app.register_blueprint(registro_bp)
+    
+    from app.routes.perfil_routes import perfil_bp
+    app.register_blueprint(perfil_bp)
 
     from .routes.auth_routes import auth_bp
     app.register_blueprint(auth_bp)

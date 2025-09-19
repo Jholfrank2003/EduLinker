@@ -9,6 +9,8 @@ from app.models.docente_model import (
     obtener_asignaturas
 )
 
+from app.utils.validaciones import validar_docente
+
 docente_bp = Blueprint('docente', __name__, url_prefix="/docente")
 
 
@@ -38,6 +40,11 @@ def editar_docente(docente_id):
         contrasena = request.form.get("password")
         asignaturas_ids = request.form.getlist("asignaturas")
 
+        valido, error = validar_docente(nombre, apellido, correo, telefono, profesion, asignaturas_ids, contrasena)
+        if not valido:
+            flash(error, "danger")
+            return render_template("docente/editar_docente.html", docente=docente, asignaturas=asignaturas)
+
         rol_id = docente["rol_id"]
 
         actualizar_docente(
@@ -56,6 +63,7 @@ def editar_docente(docente_id):
         return redirect(url_for("docente.lista_docentes"))
 
     return render_template("docente/editar_docente.html", docente=docente, asignaturas=asignaturas)
+
 
 
 

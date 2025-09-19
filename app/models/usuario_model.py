@@ -145,7 +145,7 @@ def actualizar_administrador(admin_id, nombre, apellido, correo, telefono, estad
         hashed_password = generate_password_hash(password)
         query = """
             UPDATE usuarios
-            SET nombre=%s, apellido=%s, correo=%s, telefono=%s, estado=%s {extra}
+            SET nombre=%s, apellido=%s, correo=%s, telefono=%s, estado=%s, contrasena=%s
             WHERE id=%s AND rol_id = (
                 SELECT id FROM roles WHERE nombre = 'admin'
             )
@@ -154,7 +154,7 @@ def actualizar_administrador(admin_id, nombre, apellido, correo, telefono, estad
     else:
         query = """
             UPDATE usuarios
-            SET nombre=%s, apellido=%s, correo=%s, telefono=%s, estado=%s {extra}
+            SET nombre=%s, apellido=%s, correo=%s, telefono=%s, estado=%s
             WHERE id=%s AND rol_id = (
                 SELECT id FROM roles WHERE nombre = 'admin'
             )
@@ -163,6 +163,7 @@ def actualizar_administrador(admin_id, nombre, apellido, correo, telefono, estad
 
     mysql.connection.commit()
     cursor.close()
+
 
 
 # ---------------- Obtener el Registro de Citas del Usuario ----------------
@@ -211,53 +212,6 @@ def reactivar_administrador(admin_id):
     cursor.execute(query, (admin_id,))
     mysql.connection.commit()
     cursor.close()
-
-
-
-solo_letras = re.compile(r'^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$')
-solo_numeros = re.compile(r'^\d{7,15}$')
-solo_correo = re.compile(r'^[\w\.-]+@[\w\.-]+\.\w+$')
-
-
-def validar_usuario(nombre, apellido, correo, telefono, contrasena):
-    if not nombre or not solo_letras.match(nombre):
-        return False, "El nombre solo puede contener letras."
-
-    if not apellido or not solo_letras.match(apellido):
-        return False, "El apellido solo puede contener letras."
-
-    if not correo or not solo_correo.match(correo):
-        return False, "Ingrese un correo válido."
-
-    if not telefono or not solo_numeros.match(telefono):
-        return False, "El teléfono debe tener entre 7 y 15 dígitos numéricos."
-
-    if not contrasena or len(contrasena) < 6:
-        return False, "La contraseña debe tener mínimo 6 caracteres."
-
-    return True, None
-
-
-def validar_estudiante(grado_id, fecha_nacimiento):
-    if not grado_id:
-        return False, "Debe seleccionar un grado."
-    if not fecha_nacimiento:
-        return False, "Debe ingresar la fecha de nacimiento."
-    return True, None
-
-
-def validar_acudiente(ocupacion):
-    if not ocupacion or not solo_letras.match(ocupacion):
-        return False, "La ocupación solo puede contener letras."
-    return True, None
-
-
-def validar_docente(profesion, asignaturas):
-    if not profesion or not solo_letras.match(profesion):
-        return False, "La profesión solo puede contener letras."
-    if not asignaturas or not any(asignaturas):
-        return False, "Debe seleccionar al menos una asignatura."
-    return True, None
 
 
 # ------------------- HELPER -------------------

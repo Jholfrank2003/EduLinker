@@ -84,7 +84,6 @@ def obtener_docente_por_id(docente_id):
 def actualizar_docente(docente_id, nombre, apellido, correo, telefono, rol_id, profesion, contrasena, asignaturas):
     cursor = mysql.connection.cursor()
 
-    # Actualizar usuario (con o sin contraseña)
     if contrasena:
         query = """
             UPDATE usuarios
@@ -100,7 +99,6 @@ def actualizar_docente(docente_id, nombre, apellido, correo, telefono, rol_id, p
         """
         cursor.execute(query, (nombre, apellido, correo, telefono, rol_id, docente_id))
 
-    # Verificar que el docente existe
     cursor.execute("SELECT id FROM docente WHERE usuario_id=%s", (docente_id,))
     docente_row = cursor.fetchone()
 
@@ -111,10 +109,8 @@ def actualizar_docente(docente_id, nombre, apellido, correo, telefono, rol_id, p
 
     docente_pk = docente_row[0] if isinstance(docente_row, tuple) else docente_row["id"]
 
-    # Actualizar profesión
     cursor.execute("UPDATE docente SET profesion=%s WHERE usuario_id=%s", (profesion, docente_id))
 
-    # Actualizar asignaturas (eliminar las viejas y agregar las nuevas)
     cursor.execute("DELETE FROM docente_asignatura WHERE docente_id=%s", (docente_pk,))
     for asignatura_id in asignaturas:
         cursor.execute(

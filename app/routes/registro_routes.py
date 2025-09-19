@@ -1,6 +1,6 @@
-from app import mysql
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 from werkzeug.security import generate_password_hash
+from app import mysql
 from app.models.usuario_model import (
     crear_usuario, 
     registrar_estudiante,
@@ -8,25 +8,25 @@ from app.models.usuario_model import (
     registrar_docente, 
     obtener_roles, 
     obtener_nombre_rol, 
+    manejar_error,
+    obtener_grados,
+    obtener_asignaturas
+)
+from app.utils.validaciones import (
     validar_usuario, 
     validar_estudiante, 
     validar_acudiente, 
-    validar_docente,
-    manejar_error
+    validar_docente
 )
+import datetime
 
 registro_bp = Blueprint('registro', __name__)
 
 @registro_bp.route('/registro', methods=['GET', 'POST'])
 def registro():
-    cursor = mysql.connection.cursor()
-    cursor.execute("SELECT id, nombre FROM grado")
-    grados = cursor.fetchall()
-
-    cursor.execute("SELECT id, nombre FROM asignatura")
-    asignaturas = cursor.fetchall()
-
     roles = obtener_roles()
+    grados = obtener_grados()
+    asignaturas = obtener_asignaturas()
 
     if request.method == 'POST':
         try:
@@ -35,7 +35,7 @@ def registro():
             correo = request.form['correo'].strip()
             telefono = request.form['telefono'].strip()
             contrasena = request.form['contraseña'].strip()
-            rol_id = request.form['rol_id']
+            rol_id = int(request.form['rol_id'])
 
             valido, error_msg = validar_usuario(nombre, apellido, correo, telefono, contrasena)
             if not valido:
@@ -45,28 +45,38 @@ def registro():
             usuario_id = crear_usuario(nombre, apellido, correo, telefono, contrasena_hash, rol_id)
             rol_nombre = obtener_nombre_rol(rol_id)
 
-            if rol_nombre == 'estudiante':
-                fecha_nacimiento = request.form['fecha_nacimiento']
-                grado_id = request.form['grado_id']
-                valido, error_msg = validar_estudiante(grado_id, fecha_nacimiento)
-                if not valido:
-                    return manejar_error(error_msg, roles, grados, asignaturas, request.form)
-                registrar_estudiante(usuario_id, grado_id, fecha_nacimiento)
+            if rol_nombre.lower() == 'estudiante':
+                fecha_nacimiento = request.form['fecha_nacimiento'].strip()
+                grado_id = request.form['grado_id'].strip()
 
-            elif rol_nombre == 'acudiente':
-                ocupacion = request.form['ocupacion']
-                valido, error_msg = validar_acudiente(ocupacion)
+                valido, error_msg = validar_estudiante(nombre, apellido, correo, telefono, grado_id, fecha_nacimiento)
                 if not valido:
                     return manejar_error(error_msg, roles, grados, asignaturas, request.form)
+
+                fecha_nacimiento_obj = datetime.datetime.strptime(fecha_nacimiento, "%Y-%m-%d").date()
+                grado_id_int = int(grado_id)
+
+                registrar_estudiante(usuario_id, grado_id_int, fecha_nacimiento_obj)
+
+            elif rol_nombre.lower() == 'acudiente':
+                ocupacion = request.form['ocupacion'].strip()
+
+                valido, error_msg = validar_acudiente(nombre, apellido, correo, telefono, ocupacion)
+                if not valido:
+                    return manejar_error(error_msg, roles, grados, asignaturas, request.form)
+
                 registrar_acudiente(usuario_id, ocupacion)
 
-            elif rol_nombre == 'docente':
-                profesion = request.form['profesion']
-                asignatura_id = request.form.getlist('asignatura_id')
-                valido, error_msg = validar_docente(profesion, asignatura_id)
+            elif rol_nombre.lower() == 'docente':
+                profesion = request.form['profesion'].strip()
+                asignaturas_seleccionadas = request.form.getlist('asignatura_id')
+
+                valido, error_msg = validar_docente(nombre, apellido, correo, telefono, profesion, asignaturas_seleccionadas)
                 if not valido:
-                    return manejar_error(error_msg, roles, grados, asignaturas, request.form, asignatura_id)
-                registrar_docente(usuario_id, profesion, asignatura_id)
+                    return manejar_error(error_msg, roles, grados, asignaturas, request.form, asignaturas_seleccionadas)
+
+                asignaturas_int = [int(aid) for aid in asignaturas_seleccionadas if aid]
+                registrar_docente(usuario_id, profesion, asignaturas_int)
 
             mysql.connection.commit()
             flash("Usuario registrado exitosamente ✅", "success")

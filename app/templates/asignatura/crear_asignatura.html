@@ -9,6 +9,7 @@
             <input type="text" class="form-control" id="nombre" name="nombre"
                    pattern="[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+"
                    title="Solo se permiten letras"
+                   value="{{ nombre or '' }}"
                    required>
             <div class="invalid-feedback">Ingrese un nombre válido (solo letras).</div>
         </div>

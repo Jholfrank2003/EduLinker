@@ -36,6 +36,7 @@ def obtener_acudiente_por_id(acudiente_id):
             u.apellido, 
             u.correo, 
             u.telefono, 
+            r.id AS rol_id,
             r.nombre AS rol,
             u.estado,
             a.ocupacion
@@ -51,24 +52,24 @@ def obtener_acudiente_por_id(acudiente_id):
 
 
 # ---------------- Actualizar acudiente ----------------
-def actualizar_acudiente(acudiente_id, nombre, apellido, correo, telefono, rol, estado, ocupacion, password=None):
+def actualizar_acudiente(acudiente_id, nombre, apellido, correo, telefono, rol_id, ocupacion, password=None):
     cursor = mysql.connection.cursor()
 
     if password:  
         hashed_password = generate_password_hash(password)
         query_usuario = """
             UPDATE usuarios
-            SET nombre=%s, apellido=%s, correo=%s, telefono=%s, rol=%s, estado=%s, contraseña=%s
+            SET nombre=%s, apellido=%s, correo=%s, telefono=%s, rol_id=%s, contraseña=%s
             WHERE id=%s
         """
-        cursor.execute(query_usuario, (nombre, apellido, correo, telefono, rol, estado, hashed_password, acudiente_id))
+        cursor.execute(query_usuario, (nombre, apellido, correo, telefono, rol_id, hashed_password, acudiente_id))
     else:  
         query_usuario = """
             UPDATE usuarios
-            SET nombre=%s, apellido=%s, correo=%s, telefono=%s, rol=%s, estado=%s
+            SET nombre=%s, apellido=%s, correo=%s, telefono=%s, rol_id=%s
             WHERE id=%s
         """
-        cursor.execute(query_usuario, (nombre, apellido, correo, telefono, rol, estado, acudiente_id))
+        cursor.execute(query_usuario, (nombre, apellido, correo, telefono, rol_id, acudiente_id))
 
     query_acudiente = """
         UPDATE acudiente
@@ -79,6 +80,7 @@ def actualizar_acudiente(acudiente_id, nombre, apellido, correo, telefono, rol, 
 
     mysql.connection.commit()
     cursor.close()
+
 
 
 # ---------------- Cambiar estado a inactivo (Eliminar lógico) ----------------

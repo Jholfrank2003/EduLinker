@@ -10,6 +10,8 @@ from app.models.estudiante_model import (
     obtener_grados
 )
 
+from app.utils.validaciones import validar_estudiante
+
 estudiante_bp = Blueprint('estudiante', __name__, url_prefix="/estudiante")
 
 
@@ -38,9 +40,13 @@ def editar_estudiante(estudiante_id):
         grado_id = request.form['grado_id']
         fecha_nacimiento = request.form['fecha_nacimiento']
         contrasena = request.form.get('contrasena')
-        
-        rol_id = estudiante["rol_id"]
 
+        valido, error = validar_estudiante(nombre, apellido, correo, telefono, grado_id, fecha_nacimiento, contrasena)
+        if not valido:
+            flash(error, "danger")
+            return render_template("estudiante/editar_estudiante.html", estudiante=estudiante, grados=grados)
+
+        rol_id = estudiante["rol_id"]
         actualizar_estudiante(estudiante_id, nombre, apellido, correo, telefono, rol_id, contrasena, grado_id, fecha_nacimiento)
         flash("Estudiante actualizado correctamente", "success")
         return redirect(url_for('estudiante.lista_estudiantes'))

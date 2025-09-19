@@ -8,6 +8,7 @@ from app.models.roles_model import (
     eliminar_rol,
     reactivar_rol
 )
+from app.utils.validaciones import validar_rol
 
 roles_bp = Blueprint("roles", __name__, url_prefix="/roles")
 
@@ -22,12 +23,13 @@ def crear():
         nombre = request.form["nombre"]
         descripcion = request.form["descripcion"]
 
-        if not nombre:
-            flash("El nombre es obligatorio.", "danger")
-            return redirect(url_for("roles.crear"))
+        valido, error = validar_rol(nombre, descripcion)
+        if not valido:
+            flash(error, "danger")
+            return render_template("roles/crear_rol.html", form_data=request.form)
 
         crear_rol(nombre, descripcion)
-        flash("Rol creado exitosamente.", "success")
+        flash("Rol creado exitosamente ✅", "success")
         return redirect(url_for("roles.lista_roles"))
 
     return render_template("roles/crear_rol.html")
@@ -40,8 +42,13 @@ def editar(rol_id):
         nombre = request.form["nombre"]
         descripcion = request.form["descripcion"]
 
+        valido, error = validar_rol(nombre, descripcion)
+        if not valido:
+            flash(error, "danger")
+            return render_template("roles/editar_rol.html", rol=rol, form_data=request.form)
+
         actualizar_rol(rol_id, nombre, descripcion)
-        flash("Rol actualizado correctamente.", "success")
+        flash("Rol actualizado correctamente ✅", "success")
         return redirect(url_for("roles.lista_roles"))
 
     return render_template("roles/editar_rol.html", rol=rol)
@@ -49,7 +56,7 @@ def editar(rol_id):
 @roles_bp.route("/eliminar/<int:rol_id>", methods=["POST"])
 def eliminar(rol_id):
     eliminar_rol(rol_id)
-    flash("Rol desactivado.", "warning")
+    flash("Rol desactivado ⚠️", "warning")
     return redirect(url_for("roles.lista_roles"))
 
 @roles_bp.route("/inactivos")
@@ -60,5 +67,5 @@ def inactivos():
 @roles_bp.route("/reactivar/<int:rol_id>", methods=["POST"])
 def reactivar(rol_id):
     reactivar_rol(rol_id)
-    flash("Rol reactivado correctamente.", "success")
+    flash("Rol reactivado correctamente ✅", "success")
     return redirect(url_for("roles.inactivos"))

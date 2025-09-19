@@ -8,6 +8,8 @@ from app.models.acudiente_model import (
     reactivar_acudiente
 )
 
+from app.utils.validaciones import validar_acudiente
+
 acudiente_bp = Blueprint('acudiente', __name__, url_prefix="/acudiente")
 
 @acudiente_bp.route('/')
@@ -25,21 +27,23 @@ def editar_acudiente(acudiente_id):
         apellido = request.form['apellido']
         correo = request.form['correo']
         telefono = request.form['telefono']
-        rol = request.form.get("rol", "acudiente")
-        estado = request.form['estado']
         ocupacion = request.form['ocupacion']
-        password = request.form['password']  
+        
+        contrasena = request.form.get('contrasena')
 
-        if not nombre or not apellido or not correo:
-            flash("Por favor completa los campos obligatorios.", "danger")
-            return redirect(url_for('acudiente.editar_acudiente', acudiente_id=acudiente_id))
+        valido, error = validar_acudiente(nombre, apellido, correo, telefono, ocupacion, contrasena)
+        if not valido:
+            flash(error, "danger")
+            return render_template("acudiente/editar_acudiente.html", acudiente=acudiente)
 
-        actualizar_acudiente(acudiente_id, nombre, apellido, correo, telefono, rol, estado, ocupacion, password if password else None)
-
-        flash("Acudiente actualizado correctamente.", "success")
+        rol_id = acudiente['rol_id']
+        actualizar_acudiente(acudiente_id, nombre, apellido, correo, telefono, rol_id, ocupacion, contrasena)
+        flash("Acudiente actualizado correctamente", "success")
         return redirect(url_for('acudiente.lista_acudientes'))
 
     return render_template("acudiente/editar_acudiente.html", acudiente=acudiente)
+
+
 
 
 @acudiente_bp.route('/eliminar/<int:acudiente_id>', methods=['POST'])

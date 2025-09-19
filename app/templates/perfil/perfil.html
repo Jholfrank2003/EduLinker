@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-4">Perfil de Usuario</h2>
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="card-title">{{ usuario.nombre }} {{ usuario.apellido }}</h5>
+            <p class="card-text">
+                <strong>Correo:</strong> {{ usuario.correo }}<br>
+                <strong>Teléfono:</strong> {{ usuario.telefono }}<br>
+                <strong>Rol:</strong> {{ usuario.rol }}<br>
+                <strong>Estado:</strong> {{ usuario.estado }}
+            </p>
+            <a href="{{ url_for('perfil.editar_perfil') }}" class="btn btn-primary">Editar Perfil</a>
+        </div>
+    </div>
+
+    {% if usuario.rol.lower() == 'docente' %}
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="card-title">Datos del Docente</h5>
+            <p class="card-text">
+                <strong>Profesión:</strong> {{ usuario.profesion or 'No registrado' }}<br>
+                <strong>Asignaturas:</strong> {{ usuario.asignaturas or 'No tiene asignaturas' }}
+            </p>
+        </div>
+    </div>
+
+    {% elif usuario.rol.lower() == 'estudiante' %}
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="card-title">Datos del Estudiante</h5>
+            <p class="card-text">
+                <strong>Grado:</strong> {{ usuario.grado_nombre or 'No registrado' }}<br>
+                <strong>Fecha de Nacimiento:</strong> {{ usuario.fecha_nacimiento or 'No registrada' }}<br>
+                <strong>Acudientes:</strong> {{ usuario.acudientes or 'No tiene acudientes asignados' }}
+            </p>
+        </div>
+    </div>
+
+    {% elif usuario.rol.lower() == 'acudiente' %}
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="card-title">Datos del Acudiente</h5>
+            <p class="card-text">
+                <strong>Ocupación:</strong> {{ usuario.ocupacion or 'No registrada' }}<br>
+                <strong>Estudiantes a cargo:</strong> {{ usuario.estudiantes or 'No tiene estudiantes asignados' }}
+            </p>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

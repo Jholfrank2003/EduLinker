@@ -3,23 +3,35 @@
 {% block content %}
 <div class="container">
     <h2 class="mb-4">Editar Administrador</h2>
-    <form method="POST">
+    <form method="POST" novalidate>
         <div class="mb-3">
             <label for="nombre" class="form-label">Nombre</label>
-            <input type="text" name="nombre" id="nombre" value="{{ admin.nombre }}" class="form-control" required>
+            <input type="text" name="nombre" id="nombre" value="{{ admin.nombre }}" 
+                   class="form-control" required pattern="^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$">
+            <div class="invalid-feedback">El nombre solo puede contener letras.</div>
         </div>
+
         <div class="mb-3">
             <label for="apellido" class="form-label">Apellido</label>
-            <input type="text" name="apellido" id="apellido" value="{{ admin.apellido }}" class="form-control" required>
+            <input type="text" name="apellido" id="apellido" value="{{ admin.apellido }}" 
+                   class="form-control" required pattern="^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$">
+            <div class="invalid-feedback">El apellido solo puede contener letras.</div>
         </div>
+
         <div class="mb-3">
             <label for="correo" class="form-label">Correo</label>
-            <input type="email" name="correo" id="correo" value="{{ admin.correo }}" class="form-control" required>
+            <input type="email" name="correo" id="correo" value="{{ admin.correo }}" 
+                   class="form-control" required>
+            <div class="invalid-feedback">Ingrese un correo válido.</div>
         </div>
+
         <div class="mb-3">
             <label for="telefono" class="form-label">Teléfono</label>
-            <input type="text" name="telefono" id="telefono" value="{{ admin.telefono }}" class="form-control" required>
+            <input type="text" name="telefono" id="telefono" value="{{ admin.telefono }}" 
+                   class="form-control" required pattern="^\d{7,15}$">
+            <div class="invalid-feedback">El teléfono debe tener entre 7 y 15 dígitos numéricos.</div>
         </div>
+
         <div class="mb-3">
             <label for="estado" class="form-label">Estado</label>
             <select name="estado" id="estado" class="form-select">
@@ -27,12 +39,31 @@
                 <option value="inactivo" {% if admin.estado == 'inactivo' %}selected{% endif %}>Inactivo</option>
             </select>
         </div>
+
         <div class="mb-3">
             <label for="password" class="form-label">Contraseña (opcional)</label>
-            <input type="password" name="password" id="password" class="form-control" placeholder="Dejar en blanco si no deseas cambiarla">
+            <input type="password" name="password" id="password" 
+                   class="form-control" minlength="6" placeholder="Dejar en blanco si no deseas cambiarla">
+            <div class="invalid-feedback">La contraseña debe tener mínimo 6 caracteres.</div>
         </div>
+
         <button type="submit" class="btn btn-success">Guardar Cambios</button>
         <a href="{{ url_for('usuario.lista_administradores') }}" class="btn btn-secondary">Cancelar</a>
     </form>
 </div>
+
+<script>
+    // Validación visual en tiempo real
+    document.querySelectorAll("input, select").forEach(input => {
+        input.addEventListener("input", function () {
+            if (this.checkValidity()) {
+                this.classList.add("is-valid");
+                this.classList.remove("is-invalid");
+            } else {
+                this.classList.add("is-invalid");
+                this.classList.remove("is-valid");
+            }
+        });
+    });
+</script>
 {% endblock %}

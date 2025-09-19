@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-4">Editar Perfil</h2>
+    <form method="POST" novalidate>
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label for="nombre">Nombre</label>
+                <input type="text" name="nombre" id="nombre" class="form-control" 
+                       value="{{ usuario.nombre or '' }}" required>
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <label for="apellido">Apellido</label>
+                <input type="text" name="apellido" id="apellido" class="form-control" 
+                       value="{{ usuario.apellido or '' }}" required>
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <label for="correo">Correo</label>
+                <input type="email" name="correo" id="correo" class="form-control" 
+                       value="{{ usuario.correo or '' }}" required>
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <label for="telefono">Teléfono</label>
+                <input type="text" name="telefono" id="telefono" class="form-control" 
+                       value="{{ usuario.telefono or '' }}" required>
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <label for="contrasena">Nueva Contraseña (opcional)</label>
+                <input type="password" name="contrasena" id="contrasena" class="form-control">
+            </div>
+
+            <!-- Campos por rol -->
+            {% if usuario.rol.lower() == 'docente' %}
+            <div class="col-md-6 mb-3">
+                <label for="profesion">Profesión</label>
+                <input type="text" name="profesion" id="profesion" class="form-control" 
+                    value="{{ usuario.profesion or '' }}">
+            </div>
+            <div class="col-md-12 mb-3">
+                <label for="asignaturas">Asignaturas</label>
+                <select name="asignaturas[]" id="asignaturas" class="form-control" multiple>
+                    {% for asignatura in todas_asignaturas %}
+                    <option value="{{ asignatura.id }}"
+                        {% if asignatura.id in usuario.asignaturas_list %}selected{% endif %}>
+                        {{ asignatura.nombre }}
+                    </option>
+                    {% endfor %}
+                </select>
+                
+                <small class="text-muted">Mantén presionada la tecla Ctrl (o Cmd en Mac) para seleccionar varias.</small>
+            </div>
+            
+            
+            {% elif usuario.rol.lower() == 'estudiante' %}
+                <div class="col-md-6 mb-3">
+                    <label for="grado_id">Grado</label>
+                    <input type="text" name="grado_id" id="grado_id" class="form-control" 
+                        value="{{ usuario.grado_nombre or '' }}" disabled>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="fecha_nacimiento">Fecha de Nacimiento</label>
+                    <input type="date" name="fecha_nacimiento" id="fecha_nacimiento" class="form-control" 
+                        value="{{ usuario.fecha_nacimiento or '' }}">
+                </div>
+
+            {% elif usuario.rol.lower() == 'acudiente' %}
+                <div class="col-md-6 mb-3">
+                    <label for="ocupacion">Ocupación</label>
+                    <input type="text" name="ocupacion" id="ocupacion" class="form-control" 
+                           value="{{ usuario.ocupacion or '' }}">
+                </div>
+            {% endif %}
+        </div>
+
+        <button type="submit" class="btn btn-success">Guardar Cambios</button>
+        <a href="{{ url_for('perfil.ver_perfil') }}" class="btn btn-secondary">Cancelar</a>
+    </form>
+</div>
+
+<script>
+const inputs = document.querySelectorAll("input");
+inputs.forEach(input => {
+    input.addEventListener("input", function() {
+        if(this.value.trim() !== "") {
+            this.classList.remove("is-invalid");
+            this.classList.add("is-valid");
+        } else {
+            this.classList.remove("is-valid");
+            this.classList.add("is-invalid");
+        }
+    });
+});
+</script>
+{% endblock %}

@@ -10,25 +10,23 @@
         </div>
         <div class="card-body p-4">
             <form method="POST" action="{{ url_for('registro.registro') }}" novalidate>
+                <!-- Datos básicos -->
                 <div class="row">
                     <div class="col-md-6 mb-3">
                         <label for="nombre" class="form-label">Nombre</label>
                         <input type="text" class="form-control" name="nombre" id="nombre"
                                value="{{ form_data.nombre if form_data else '' }}"
-                               pattern="[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+" 
-                               title="Solo se permiten letras" required>
+                               pattern="[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+" title="Solo letras" required>
                         <div class="invalid-feedback">Ingrese un nombre válido (solo letras).</div>
                     </div>
                     <div class="col-md-6 mb-3">
                         <label for="apellido" class="form-label">Apellido</label>
                         <input type="text" class="form-control" name="apellido" id="apellido"
                                value="{{ form_data.apellido if form_data else '' }}"
-                               pattern="[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+" 
-                               title="Solo se permiten letras" required>
+                               pattern="[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+" title="Solo letras" required>
                         <div class="invalid-feedback">Ingrese un apellido válido (solo letras).</div>
                     </div>
                 </div>
-                
 
                 <div class="mb-3">
                     <label for="correo" class="form-label">Correo</label>
@@ -52,13 +50,14 @@
                     <div class="invalid-feedback">La contraseña debe tener mínimo 6 caracteres.</div>
                 </div>
 
+                <!-- Rol -->
                 <div class="mb-3">
                     <label for="rol_id" class="form-label">Rol</label>
                     <select name="rol_id" id="rol_id" class="form-select" required>
                         <option value="">Seleccionar Rol</option>
                         {% for rol in roles %}
                             <option value="{{ rol.id }}"
-                                {% if form_data and form_data.rol_id == rol.id|string %}selected{% endif %}>
+                                {% if form_data and form_data.rol_id|string == rol.id|string %}selected{% endif %}>
                                 {{ rol.nombre | capitalize }}
                             </option>
                         {% endfor %}
@@ -66,7 +65,8 @@
                     <div class="invalid-feedback">Seleccione un rol.</div>
                 </div>
 
-                <div id="campos_estudiante" style="display:none;">
+                <!-- Campos Estudiante -->
+                <div id="campos_estudiante">
                     <div class="mb-3">
                         <label for="fecha_nacimiento" class="form-label">Fecha de Nacimiento</label>
                         <input type="date" class="form-control" name="fecha_nacimiento" id="fecha_nacimiento"
@@ -79,7 +79,7 @@
                             <option value="">Seleccionar un Grado</option>
                             {% for grado in grados %}
                                 <option value="{{ grado.id }}"
-                                    {% if form_data and form_data.grado_id == grado.id|string %}selected{% endif %}>
+                                    {% if form_data and form_data.grado_id|string == grado.id|string %}selected{% endif %}>
                                     {{ grado.nombre }}
                                 </option>
                             {% endfor %}
@@ -88,7 +88,8 @@
                     </div>
                 </div>
 
-                <div id="campos_acudiente" style="display:none;">
+                <!-- Campos Acudiente -->
+                <div id="campos_acudiente">
                     <div class="mb-3">
                         <label for="ocupacion" class="form-label">Ocupación</label>
                         <input type="text" class="form-control" name="ocupacion" id="ocupacion"
@@ -97,7 +98,8 @@
                     </div>
                 </div>
 
-                <div id="campos_docente" style="display:none;">
+                <!-- Campos Docente -->
+                <div id="campos_docente">
                     <div class="mb-3">
                         <label for="profesion" class="form-label">Profesión</label>
                         <input type="text" class="form-control" name="profesion" id="profesion"
@@ -132,22 +134,28 @@
         const estudiante = document.getElementById("campos_estudiante");
         const acudiente = document.getElementById("campos_acudiente");
         const docente = document.getElementById("campos_docente");
-    
-        [estudiante, acudiente, docente].forEach(div => {
-            div.style.display = "none";
-            div.querySelectorAll("input, select").forEach(el => el.value = "");
-        });
-    
+
+        // Ocultar todos
+        [estudiante, acudiente, docente].forEach(div => div.style.display = "none");
+
         if (rol === "estudiante") estudiante.style.display = "block";
         if (rol === "acudiente") acudiente.style.display = "block";
         if (rol === "docente") docente.style.display = "block";
     }
-    
-    document.getElementById("rol_id").addEventListener("change", function() {
-        const selectedText = this.options[this.selectedIndex].text.toLowerCase();
+
+    // Inicializar según selección previa
+    document.addEventListener("DOMContentLoaded", () => {
+        const rolSelect = document.getElementById("rol_id");
+        const selectedText = rolSelect.options[rolSelect.selectedIndex].text.toLowerCase();
         toggleCampos(selectedText);
+
+        rolSelect.addEventListener("change", function() {
+            const rol = this.options[this.selectedIndex].text.toLowerCase();
+            toggleCampos(rol);
+        });
     });
-    
+
+    // Validación visual instantánea
     const inputs = document.querySelectorAll("input, select");
     inputs.forEach(input => {
         input.addEventListener("input", function () {
@@ -160,6 +168,5 @@
             }
         });
     });
-    </script>
-    
+</script>
 {% endblock %}

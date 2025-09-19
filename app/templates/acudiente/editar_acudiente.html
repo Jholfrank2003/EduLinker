@@ -8,20 +8,14 @@
             <div class="col-md-6 mb-3">
                 <label for="nombre" class="form-label">Nombre</label>
                 <input type="text" name="nombre" id="nombre" class="form-control"
-                       value="{{ acudiente.nombre }}"
-                       pattern="[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+"
-                       title="Solo se permiten letras"
-                       required>
+                       value="{{ acudiente.nombre }}" required>
                 <div class="invalid-feedback">Ingrese un nombre válido (solo letras).</div>
             </div>
 
             <div class="col-md-6 mb-3">
                 <label for="apellido" class="form-label">Apellido</label>
                 <input type="text" name="apellido" id="apellido" class="form-control"
-                       value="{{ acudiente.apellido }}"
-                       pattern="[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+"
-                       title="Solo se permiten letras"
-                       required>
+                       value="{{ acudiente.apellido }}" required>
                 <div class="invalid-feedback">Ingrese un apellido válido (solo letras).</div>
             </div>
 
@@ -34,10 +28,8 @@
 
             <div class="col-md-6 mb-3">
                 <label for="telefono" class="form-label">Teléfono</label>
-                <input type="tel" name="telefono" id="telefono" class="form-control"
-                       value="{{ acudiente.telefono }}"
-                       pattern="[0-9]{7,15}" minlength="7" maxlength="15"
-                       placeholder="Ej: 3001234567" required>
+                <input type="text" name="telefono" id="telefono" class="form-control"
+                       value="{{ acudiente.telefono }}" required>
                 <div class="invalid-feedback">El teléfono debe tener entre 7 y 15 dígitos numéricos.</div>
             </div>
 
@@ -47,21 +39,18 @@
             <div class="col-md-6 mb-3">
                 <label for="ocupacion" class="form-label">Ocupación</label>
                 <input type="text" name="ocupacion" id="ocupacion" class="form-control"
-                       value="{{ acudiente.ocupacion }}"
-                       pattern="[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+"
-                       title="Solo se permiten letras">
-                <div class="invalid-feedback">Ingrese una ocupación válida (solo letras).</div>
+                       value="{{ acudiente.ocupacion }}" required>
+                <div class="invalid-feedback">La ocupación solo puede contener letras.</div>
             </div>
 
             <div class="col-md-6 mb-3">
-                <label for="password" class="form-label">Contraseña (opcional)</label>
+                <label for="password" class="form-label">Nueva Contraseña (opcional)</label>
                 <input type="password" name="password" id="password" class="form-control"
-                       minlength="6"
                        placeholder="Dejar vacío si no desea cambiarla">
                 <div class="invalid-feedback">La contraseña debe tener mínimo 6 caracteres.</div>
             </div>
         </div>
-        <button type="submit" class="btn btn-success">Actualizar</button>
+        <button type="submit" class="btn btn-success">Guardar Cambios</button>
         <a href="{{ url_for('acudiente.lista_acudientes') }}" class="btn btn-secondary">Cancelar</a>
     </form>
 </div>
@@ -70,7 +59,7 @@
 const inputs = document.querySelectorAll("input, select");
 inputs.forEach(input => {
     input.addEventListener("input", function () {
-        if (this.checkValidity()) {
+        if (this.value.trim() !== "") {
             this.classList.remove("is-invalid");
             this.classList.add("is-valid");
         } else {
